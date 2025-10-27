@@ -5,17 +5,20 @@ import type { PostgrestError } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('user_id');
+    const supabase = await createClient();
 
-    if (!userId) {
+    // Authenticate user - CRITICAL SECURITY CHECK
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
       return NextResponse.json(
-        { success: false, error: 'Se requiere user_id' },
-        { status: 400 }
+        { success: false, error: 'No autenticado' },
+        { status: 401 }
       );
     }
 
-    const supabase = await createClient();
+    // Use authenticated user's ID - don't trust client input!
+    const userId = user.id;
 
     const { data: profile, error } = await supabase
       .from('profiles')

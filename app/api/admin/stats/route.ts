@@ -5,6 +5,30 @@ export async function GET() {
   try {
     const supabase = await createClient();
 
+    // CRITICAL: Verify user is authenticated and is admin
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'No autenticado' },
+        { status: 401 }
+      );
+    }
+
+    // Verify user is admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single();
+
+    if (profile?.user_type !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'No autorizado. Solo administradores.' },
+        { status: 403 }
+      );
+    }
+
     const { data: profiles } = await supabase
       .from('profiles')
       .select('user_type, validation_status, project_id') as {

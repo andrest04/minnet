@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 
 interface Profile {
@@ -11,31 +12,57 @@ interface Profile {
   position: string;
   validation_status: 'pending' | 'approved' | 'rejected';
   assigned_projects: string[];
+  user_type: string;
 }
 
 export default function EmpresaPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClient();
 
   useEffect(() => {
-    const userType = localStorage.getItem('user_type');
-    const userId = localStorage.getItem('user_id');
+    checkAuthAndLoadProfile();
+  }, []);
 
-    if (userType !== 'empresa' || !userId) {
-      router.push('/login');
-      return;
-    }
-
-    fetchProfile(userId);
-  }, [router]);
-
-  const fetchProfile = async (userId: string) => {
+  const checkAuthAndLoadProfile = async () => {
     try {
-      const response = await fetch(`/api/profile?user_id=${userId}`);
+      // Check authentication using Supabase session
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        router.push('/login');
+        return;
+      }
+
+      // Fetch profile data
+      await fetchProfile();
+    } catch (error) {
+      console.error('Error al verificar autenticación:', error);
+      router.push('/login');
+    }
+  };
+
+  const fetchProfile = async () => {
+    try {
+      const response = await fetch('/api/profile');
       const data = await response.json();
 
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push('/login');
+          return;
+        }
+        throw new Error(data.error || 'Error al cargar perfil');
+      }
+
       if (data.success && data.profile) {
+        // Verify user is empresa
+        if (data.profile.user_type !== 'empresa') {
+          router.push(`/${data.profile.user_type}`);
+          return;
+        }
+
         setProfile(data.profile);
       }
     } catch (error) {
@@ -45,8 +72,8 @@ export default function EmpresaPage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     router.push('/login');
   };
 

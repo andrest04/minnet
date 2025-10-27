@@ -5,6 +5,30 @@ export async function GET() {
   try {
     const supabase = await createClient();
 
+    // CRITICAL: Verify user is authenticated and is admin
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'No autenticado' },
+        { status: 401 }
+      );
+    }
+
+    // Verify user is admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single();
+
+    if (profile?.user_type !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'No autorizado. Solo administradores.' },
+        { status: 403 }
+      );
+    }
+
     const { data: companies, error } = await supabase
       .from('profiles')
       .select('id, full_name, company_name, position, validation_status, created_at, email')
@@ -34,6 +58,32 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const supabase = await createClient();
+
+    // CRITICAL: Verify user is authenticated and is admin
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'No autenticado' },
+        { status: 401 }
+      );
+    }
+
+    // Verify user is admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single();
+
+    if (profile?.user_type !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'No autorizado. Solo administradores.' },
+        { status: 403 }
+      );
+    }
+
     const { company_id, validation_status } = await request.json();
 
     if (!company_id || !validation_status) {
@@ -49,8 +99,6 @@ export async function PATCH(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const supabase = await createClient();
 
     const { error } = await supabase
       .from('profiles')

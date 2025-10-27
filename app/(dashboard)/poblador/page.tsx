@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 
 interface Profile {
@@ -14,6 +15,7 @@ interface Profile {
   topics_interest: string[];
   knowledge_level: string;
   participation_willingness: string[];
+  user_type: string;
 }
 
 interface Project {
@@ -32,25 +34,50 @@ export default function PobladorPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [community, setCommunity] = useState<Community | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClient();
 
   useEffect(() => {
-    const userType = localStorage.getItem('user_type');
-    const userId = localStorage.getItem('user_id');
+    checkAuthAndLoadProfile();
+  }, []);
 
-    if (userType !== 'poblador' || !userId) {
-      router.push('/login');
-      return;
-    }
-
-    fetchProfile(userId);
-  }, [router]);
-
-  const fetchProfile = async (userId: string) => {
+  const checkAuthAndLoadProfile = async () => {
     try {
-      const response = await fetch(`/api/profile?user_id=${userId}`);
+      // Check authentication using Supabase session
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        router.push('/login');
+        return;
+      }
+
+      // Fetch profile data using API (now secured with auth)
+      await fetchProfile();
+    } catch (error) {
+      console.error('Error al verificar autenticación:', error);
+      router.push('/login');
+    }
+  };
+
+  const fetchProfile = async () => {
+    try {
+      const response = await fetch('/api/profile');
       const data = await response.json();
 
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push('/login');
+          return;
+        }
+        throw new Error(data.error || 'Error al cargar perfil');
+      }
+
       if (data.success && data.profile) {
+        // Verify user is poblador
+        if (data.profile.user_type !== 'poblador') {
+          router.push(`/${data.profile.user_type}`);
+          return;
+        }
+
         setProfile(data.profile);
         if (data.project) setProject(data.project);
         if (data.community) setCommunity(data.community);
@@ -62,8 +89,8 @@ export default function PobladorPage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     router.push('/login');
   };
 

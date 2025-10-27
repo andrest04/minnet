@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 
 interface Company {
@@ -27,16 +28,30 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+  const supabase = createClient();
 
   useEffect(() => {
-    const userType = localStorage.getItem('user_type');
-    if (userType !== 'admin') {
-      router.push('/login');
-      return;
-    }
+    checkAuthAndLoadData();
+  }, []);
 
-    fetchData();
-  }, [router]);
+  const checkAuthAndLoadData = async () => {
+    try {
+      // Check authentication using Supabase session
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        router.push('/login');
+        return;
+      }
+
+      // Verify user is admin by trying to fetch admin data
+      // If not admin, the API will return 403
+      await fetchData();
+    } catch (error) {
+      console.error('Error al verificar autenticación:', error);
+      router.push('/login');
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -44,6 +59,17 @@ export default function AdminPage() {
         fetch('/api/admin/companies'),
         fetch('/api/admin/stats'),
       ]);
+
+      // Check for auth errors
+      if (companiesRes.status === 401 || statsRes.status === 401) {
+        router.push('/login');
+        return;
+      }
+
+      if (companiesRes.status === 403 || statsRes.status === 403) {
+        router.push('/poblador'); // Not admin, redirect to default
+        return;
+      }
 
       const companiesData = await companiesRes.json();
       const statsData = await statsRes.json();
