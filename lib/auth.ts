@@ -41,7 +41,7 @@ export async function hasUserType(user: User, userType: 'poblador' | 'empresa' |
     .from('profiles')
     .select('user_type')
     .eq('id', user.id)
-    .single()
+    .single<{ user_type: string }>()
 
   return profile?.user_type === userType
 }
@@ -62,7 +62,7 @@ export async function requireUserType(userType: 'poblador' | 'empresa' | 'admin'
       .from('profiles')
       .select('user_type')
       .eq('id', user.id)
-      .single()
+      .single<{ user_type: string }>()
 
     const actualType = profile?.user_type
 

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/Button';
 
 interface Company {
@@ -30,30 +30,7 @@ export default function AdminPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const supabase = createClient();
 
-  useEffect(() => {
-    checkAuthAndLoadData();
-  }, []);
-
-  const checkAuthAndLoadData = async () => {
-    try {
-      // Check authentication using Supabase session
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        router.push('/login');
-        return;
-      }
-
-      // Verify user is admin by trying to fetch admin data
-      // If not admin, the API will return 403
-      await fetchData();
-    } catch (error) {
-      console.error('Error al verificar autenticación:', error);
-      router.push('/login');
-    }
-  };
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [companiesRes, statsRes] = await Promise.all([
         fetch('/api/admin/companies'),
@@ -81,7 +58,30 @@ export default function AdminPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
+
+  const checkAuthAndLoadData = useCallback(async () => {
+    try {
+      // Check authentication using Supabase session
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        router.push('/login');
+        return;
+      }
+
+      // Verify user is admin by trying to fetch admin data
+      // If not admin, the API will return 403
+      await fetchData();
+    } catch (error) {
+      console.error('Error al verificar autenticación:', error);
+      router.push('/login');
+    }
+  }, [router, supabase, fetchData]);
+
+  useEffect(() => {
+    checkAuthAndLoadData();
+  }, [checkAuthAndLoadData]);
 
   const handleUpdateStatus = async (companyId: string, status: 'approved' | 'rejected') => {
     try {

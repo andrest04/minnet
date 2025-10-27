@@ -20,7 +20,7 @@ export async function GET() {
       .from('profiles')
       .select('user_type')
       .eq('id', user.id)
-      .single();
+      .single<{ user_type: string }>();
 
     if (profile?.user_type !== 'admin') {
       return NextResponse.json(

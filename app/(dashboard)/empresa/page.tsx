@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/Button';
 
 interface Profile {
@@ -21,29 +21,7 @@ export default function EmpresaPage() {
   const [isLoading, setIsLoading] = useState(true);
   const supabase = createClient();
 
-  useEffect(() => {
-    checkAuthAndLoadProfile();
-  }, []);
-
-  const checkAuthAndLoadProfile = async () => {
-    try {
-      // Check authentication using Supabase session
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        router.push('/login');
-        return;
-      }
-
-      // Fetch profile data
-      await fetchProfile();
-    } catch (error) {
-      console.error('Error al verificar autenticación:', error);
-      router.push('/login');
-    }
-  };
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const response = await fetch('/api/profile');
       const data = await response.json();
@@ -70,7 +48,29 @@ export default function EmpresaPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
+
+  const checkAuthAndLoadProfile = useCallback(async () => {
+    try {
+      // Check authentication using Supabase session
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        router.push('/login');
+        return;
+      }
+
+      // Fetch profile data
+      await fetchProfile();
+    } catch (error) {
+      console.error('Error al verificar autenticación:', error);
+      router.push('/login');
+    }
+  }, [router, supabase, fetchProfile]);
+
+  useEffect(() => {
+    checkAuthAndLoadProfile();
+  }, [checkAuthAndLoadProfile]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
