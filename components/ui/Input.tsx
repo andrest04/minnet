@@ -28,7 +28,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputType = isPassword && showPassword ? 'text' : type;
 
     const baseStyles =
-      'w-full px-4 py-2.5 text-base rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1';
+      'w-full px-4 py-2.5 text-base rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 text-foreground placeholder:text-muted-foreground';
 
     const stateStyles = error
       ? 'border-error focus:ring-error focus:border-error'
@@ -44,7 +44,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-foreground mb-1.5">
+          <label className="block text-sm font-medium text-gray-900 mb-1.5">
             {label}
           </label>
         )}
