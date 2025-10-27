@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE and editor configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation (personal notes)
+CLAUDE.md
+DEPLOYMENT.md
+PROGRESO.md
+SUPABASE_SETUP.md
+*.md
+!README.md
