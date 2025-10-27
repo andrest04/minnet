@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import {
-  validateEmail,
-  validatePhonePeru,
   validateCorporateEmail,
   cleanPhone,
 } from '@/lib/validations';
@@ -29,7 +27,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     if (user_type === 'poblador') {
-      const { project_id, community_id, age_range, education_level, profession, junta_link } =
+      const { project_id, community_id, age_range, education_level, profession } =
         profileData;
 
       if (!project_id || !community_id || !age_range || !education_level || !profession) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { validateOTP, isOTPExpired, cleanPhone } from '@/lib/validations';
 import type { Database } from '@/lib/supabase/database.types';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 const MAX_OTP_ATTEMPTS = 3;
 
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
       .eq(identifierColumn, normalizedIdentifier)
       .single() as {
         data: Pick<Database['public']['Tables']['profiles']['Row'], 'id' | 'user_type'> | null;
-        error: any;
+        error: PostgrestError | null;
       };
 
     if (profileError && profileError.code !== 'PGRST116') {

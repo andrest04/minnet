@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -15,10 +16,14 @@ export default function DashboardLayout({
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="container flex h-16 items-center">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-secondary">
-              <span className="text-xl font-bold">M</span>
-            </div>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/assets/only_logo_minnet.webp"
+              alt="MinneT"
+              width={40}
+              height={40}
+              className="object-contain"
+            />
             <span className="text-xl font-bold text-primary">MinneT</span>
           </div>
 

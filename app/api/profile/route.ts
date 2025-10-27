@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
       .eq('id', userId)
       .single() as {
         data: Database['public']['Tables']['profiles']['Row'] | null;
-        error: any;
+        error: PostgrestError | null;
       };
 
     if (error || !profile) {
