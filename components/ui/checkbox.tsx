@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
-import { CheckIcon } from "lucide-react"
+import * as React from "react";
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
+import { CheckIcon } from "lucide-react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 function Checkbox({
   className,
@@ -26,7 +26,49 @@ function Checkbox({
         <CheckIcon className="size-3.5" />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
-  )
+  );
 }
 
-export { Checkbox }
+export { Checkbox };
+
+// Custom Checkbox wrapper with enhanced props
+interface CustomCheckboxProps {
+  label?: React.ReactNode;
+  checked?: boolean;
+  onChange?: (checked: boolean) => void;
+  error?: string;
+  disabled?: boolean;
+  className?: string;
+}
+
+function CustomCheckbox({
+  label,
+  checked,
+  onChange,
+  error,
+  disabled,
+  className,
+  ...props
+}: CustomCheckboxProps) {
+  return (
+    <div className={className}>
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          checked={checked}
+          onCheckedChange={onChange}
+          disabled={disabled}
+          className={error ? "border-destructive" : ""}
+          {...props}
+        />
+        {label && (
+          <label className="text-sm font-medium text-foreground cursor-pointer">
+            {label}
+          </label>
+        )}
+      </div>
+      {error && <p className="mt-1 text-sm text-destructive">{error}</p>}
+    </div>
+  );
+}
+
+export { CustomCheckbox };

@@ -1,11 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Select, SelectOption } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
-import { PROFESSIONS } from '@/lib/validations';
-import type { PobladorRegistrationData } from '@/lib/types';
+import { useState } from "react";
+import { CustomSelect as Select } from "@/components/ui/select";
+import { CustomCheckbox as Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { PROFESSIONS } from "@/lib/validations";
+import type { PobladorRegistrationData } from "@/lib/types";
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
 
 interface Step2Props {
   formData: Partial<PobladorRegistrationData>;
@@ -14,9 +19,12 @@ interface Step2Props {
 }
 
 const JUNTA_OPTIONS: SelectOption[] = [
-  { value: 'true', label: 'Sí, soy parte de la junta' },
-  { value: 'false', label: 'No, no soy parte' },
-  { value: 'familiar', label: 'Soy familiar o conocido de alguien de la junta' },
+  { value: "true", label: "Sí, soy parte de la junta" },
+  { value: "false", label: "No, no soy parte" },
+  {
+    value: "familiar",
+    label: "Soy familiar o conocido de alguien de la junta",
+  },
 ];
 
 export const Step2 = ({ formData, updateFormData, onNext }: Step2Props) => {
@@ -26,9 +34,12 @@ export const Step2 = ({ formData, updateFormData, onNext }: Step2Props) => {
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.profession) newErrors.profession = 'Selecciona tu profesión u oficio';
-    if (formData.junta_link === undefined) newErrors.junta_link = 'Selecciona una opción';
-    if (!consent) newErrors.consent = 'Debes aceptar los términos para continuar';
+    if (!formData.profession)
+      newErrors.profession = "Selecciona tu profesión u oficio";
+    if (formData.junta_link === undefined)
+      newErrors.junta_link = "Selecciona una opción";
+    if (!consent)
+      newErrors.consent = "Debes aceptar los términos para continuar";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -45,7 +56,7 @@ export const Step2 = ({ formData, updateFormData, onNext }: Step2Props) => {
       <Select
         label="Profesión u Oficio"
         placeholder="Selecciona tu ocupación"
-        value={formData.profession || ''}
+        value={formData.profession || ""}
         onChange={(value) => updateFormData({ profession: value })}
         options={PROFESSIONS}
         error={errors.profession}
@@ -56,16 +67,16 @@ export const Step2 = ({ formData, updateFormData, onNext }: Step2Props) => {
         placeholder="Selecciona una opción"
         value={
           formData.junta_link === true
-            ? 'true'
+            ? "true"
             : formData.junta_link === false
-            ? 'false'
+            ? "false"
             : formData.junta_link === undefined
-            ? ''
-            : 'familiar'
+            ? ""
+            : "familiar"
         }
         onChange={(value) => {
-          if (value === 'true') updateFormData({ junta_link: true });
-          else if (value === 'false') updateFormData({ junta_link: false });
+          if (value === "true") updateFormData({ junta_link: true });
+          else if (value === "false") updateFormData({ junta_link: false });
         }}
         options={JUNTA_OPTIONS}
         error={errors.junta_link}
@@ -75,19 +86,20 @@ export const Step2 = ({ formData, updateFormData, onNext }: Step2Props) => {
         <Checkbox
           label={
             <span className="text-sm">
-              He leído y acepto los{' '}
+              He leído y acepto los{" "}
               <a href="#" className="text-primary font-medium hover:underline">
                 términos y condiciones
-              </a>{' '}
-              y la{' '}
+              </a>{" "}
+              y la{" "}
               <a href="#" className="text-primary font-medium hover:underline">
                 política de privacidad
               </a>
-              . Autorizo el uso de mis datos para fines educativos y de análisis sociodemográfico.
+              . Autorizo el uso de mis datos para fines educativos y de análisis
+              sociodemográfico.
             </span>
           }
           checked={consent}
-          onChange={(e) => setConsent(e.target.checked)}
+          onChange={setConsent}
           error={errors.consent}
         />
       </div>

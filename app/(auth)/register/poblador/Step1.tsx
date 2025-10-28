@@ -1,11 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Select } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { AGE_RANGES, EDUCATION_LEVELS } from '@/lib/validations';
-import type { PobladorRegistrationData } from '@/lib/types';
+import { useState, useEffect } from "react";
+import { CustomSelect as Select } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { AGE_RANGES, EDUCATION_LEVELS } from "@/lib/validations";
+import type { PobladorRegistrationData } from "@/lib/types";
 
 interface Step1Props {
   formData: Partial<PobladorRegistrationData>;
@@ -42,13 +41,13 @@ export const Step1 = ({ formData, updateFormData, onNext }: Step1Props) => {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('/api/projects');
+      const response = await fetch("/api/projects");
       const data = await response.json();
       if (data.success) {
         setProjects(data.data);
       }
     } catch (error) {
-      console.error('Error al cargar proyectos:', error);
+      console.error("Error al cargar proyectos:", error);
     } finally {
       setIsLoadingProjects(false);
     }
@@ -63,24 +62,27 @@ export const Step1 = ({ formData, updateFormData, onNext }: Step1Props) => {
         setCommunities(data.data);
       }
     } catch (error) {
-      console.error('Error al cargar comunidades:', error);
+      console.error("Error al cargar comunidades:", error);
     } finally {
       setIsLoadingCommunities(false);
     }
   };
 
   const handleProjectChange = (value: string) => {
-    updateFormData({ project_id: value, community_id: '' });
+    updateFormData({ project_id: value, community_id: "" });
     setCommunities([]);
   };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.project_id) newErrors.project_id = 'Selecciona un proyecto';
-    if (!formData.community_id) newErrors.community_id = 'Selecciona una comunidad';
-    if (!formData.age_range) newErrors.age_range = 'Selecciona tu rango de edad';
-    if (!formData.education_level) newErrors.education_level = 'Selecciona tu nivel educativo';
+    if (!formData.project_id) newErrors.project_id = "Selecciona un proyecto";
+    if (!formData.community_id)
+      newErrors.community_id = "Selecciona una comunidad";
+    if (!formData.age_range)
+      newErrors.age_range = "Selecciona tu rango de edad";
+    if (!formData.education_level)
+      newErrors.education_level = "Selecciona tu nivel educativo";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -97,7 +99,7 @@ export const Step1 = ({ formData, updateFormData, onNext }: Step1Props) => {
       <Select
         label="Proyecto Minero"
         placeholder="Selecciona un proyecto"
-        value={formData.project_id || ''}
+        value={formData.project_id || ""}
         onChange={handleProjectChange}
         options={projects.map((p) => ({ value: p.id, label: p.name }))}
         error={errors.project_id}
@@ -107,18 +109,20 @@ export const Step1 = ({ formData, updateFormData, onNext }: Step1Props) => {
       <Select
         label="Comunidad / Centro Poblado"
         placeholder="Selecciona una comunidad"
-        value={formData.community_id || ''}
+        value={formData.community_id || ""}
         onChange={(value) => updateFormData({ community_id: value })}
         options={communities.map((c) => ({ value: c.id, label: c.name }))}
         error={errors.community_id}
         disabled={!formData.project_id || isLoadingCommunities}
-        helperText={!formData.project_id ? 'Primero selecciona un proyecto' : undefined}
+        helperText={
+          !formData.project_id ? "Primero selecciona un proyecto" : undefined
+        }
       />
 
       <Select
         label="Rango de Edad"
         placeholder="Selecciona tu edad"
-        value={formData.age_range || ''}
+        value={formData.age_range || ""}
         onChange={(value) => updateFormData({ age_range: value })}
         options={AGE_RANGES}
         error={errors.age_range}
@@ -127,7 +131,7 @@ export const Step1 = ({ formData, updateFormData, onNext }: Step1Props) => {
       <Select
         label="Nivel Educativo"
         placeholder="Selecciona tu nivel"
-        value={formData.education_level || ''}
+        value={formData.education_level || ""}
         onChange={(value) => updateFormData({ education_level: value })}
         options={EDUCATION_LEVELS}
         error={errors.education_level}
