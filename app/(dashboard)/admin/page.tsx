@@ -2,8 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { Users, Building2, Clock, CheckCircle2, Loader2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { StatCard } from '@/components/dashboard/StatCard';
+import { toast } from 'sonner';
 
 interface Company {
   id: string;
@@ -94,13 +99,14 @@ export default function AdminPage() {
       const data = await response.json();
 
       if (data.success) {
+        toast.success(`Empresa ${status === 'approved' ? 'aprobada' : 'rechazada'} correctamente`);
         fetchData();
       } else {
-        alert(data.error || 'Error al actualizar estado');
+        toast.error(data.error || 'Error al actualizar estado');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión');
+      toast.error('Error de conexión');
     }
   };
 
@@ -108,17 +114,12 @@ export default function AdminPage() {
     (c) => filter === 'all' || c.validation_status === filter
   );
 
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push('/login');
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando...</p>
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Cargando panel de administración...</p>
         </div>
       </div>
     );
@@ -126,116 +127,121 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-primary">Panel de Administración</h1>
-          <p className="text-muted-foreground">Gestiona empresas y visualiza estadísticas</p>
-        </div>
-        <Button variant="outline" onClick={handleLogout}>
-          Cerrar sesión
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Panel de Administración</h1>
+        <p className="text-muted-foreground">Gestiona empresas y visualiza estadísticas</p>
       </div>
 
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white p-6 rounded-xl border border-border">
-            <p className="text-sm text-muted-foreground mb-1">Total Pobladores</p>
-            <p className="text-3xl font-bold text-primary">{stats.total_pobladores}</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl border border-border">
-            <p className="text-sm text-muted-foreground mb-1">Total Empresas</p>
-            <p className="text-3xl font-bold text-primary">{stats.total_empresas}</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl border border-border">
-            <p className="text-sm text-muted-foreground mb-1">Empresas Pendientes</p>
-            <p className="text-3xl font-bold text-warning">{stats.empresas_pendientes}</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl border border-border">
-            <p className="text-sm text-muted-foreground mb-1">Empresas Aprobadas</p>
-            <p className="text-3xl font-bold text-success">{stats.empresas_aprobadas}</p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Total Pobladores"
+            value={stats.total_pobladores}
+            icon={Users}
+          />
+          <StatCard
+            title="Total Empresas"
+            value={stats.total_empresas}
+            icon={Building2}
+          />
+          <StatCard
+            title="Empresas Pendientes"
+            value={stats.empresas_pendientes}
+            icon={Clock}
+          />
+          <StatCard
+            title="Empresas Aprobadas"
+            value={stats.empresas_aprobadas}
+            icon={CheckCircle2}
+          />
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-border p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-foreground">Gestión de Empresas</h2>
-          <div className="flex gap-2">
-            {(['all', 'pending', 'approved', 'rejected'] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === f
-                    ? 'bg-primary text-white'
-                    : 'bg-muted text-foreground hover:bg-primary/10'
-                }`}
-              >
-                {f === 'all' ? 'Todas' : f === 'pending' ? 'Pendientes' : f === 'approved' ? 'Aprobadas' : 'Rechazadas'}
-              </button>
-            ))}
+      <Card className="border-border">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Gestión de Empresas</CardTitle>
+            <div className="flex gap-2">
+              {(['all', 'pending', 'approved', 'rejected'] as const).map((f) => (
+                <Button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  variant={filter === f ? 'default' : 'outline'}
+                  size="sm"
+                >
+                  {f === 'all' ? 'Todas' : f === 'pending' ? 'Pendientes' : f === 'approved' ? 'Aprobadas' : 'Rechazadas'}
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
+        </CardHeader>
 
-        <div className="space-y-3">
-          {filteredCompanies.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No hay empresas en esta categoría</p>
-          ) : (
-            filteredCompanies.map((company) => (
-              <div key={company.id} className="border border-border rounded-lg p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground">{company.full_name}</h3>
-                    <p className="text-sm text-muted-foreground">{company.company_name}</p>
-                    <p className="text-sm text-muted-foreground">{company.position}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{company.email}</p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Registrado: {new Date(company.created_at).toLocaleDateString('es-PE')}
-                    </p>
-                  </div>
+        <CardContent>
+          <div className="space-y-3">
+            {filteredCompanies.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">No hay empresas en esta categoría</p>
+            ) : (
+              filteredCompanies.map((company) => (
+                <div key={company.id} className="border border-border rounded-lg p-4 hover:bg-accent/5 transition-colors">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-1">
+                      <h3 className="font-semibold text-foreground">{company.full_name}</h3>
+                      <p className="text-sm text-muted-foreground">{company.company_name}</p>
+                      <p className="text-sm text-muted-foreground">{company.position}</p>
+                      <p className="text-sm text-muted-foreground">{company.email}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Registrado: {new Date(company.created_at).toLocaleDateString('es-PE')}
+                      </p>
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        company.validation_status === 'pending'
-                          ? 'bg-warning/10 text-warning'
+                    <div className="flex flex-col items-end gap-3">
+                      <Badge
+                        variant={
+                          company.validation_status === 'pending'
+                            ? 'secondary'
+                            : company.validation_status === 'approved'
+                            ? 'default'
+                            : 'destructive'
+                        }
+                        className={
+                          company.validation_status === 'pending'
+                            ? 'bg-amber-100 text-amber-900 hover:bg-amber-200'
+                            : ''
+                        }
+                      >
+                        {company.validation_status === 'pending'
+                          ? 'Pendiente'
                           : company.validation_status === 'approved'
-                          ? 'bg-success/10 text-success'
-                          : 'bg-error/10 text-error'
-                      }`}
-                    >
-                      {company.validation_status === 'pending'
-                        ? 'Pendiente'
-                        : company.validation_status === 'approved'
-                        ? 'Aprobada'
-                        : 'Rechazada'}
-                    </span>
+                          ? 'Aprobada'
+                          : 'Rechazada'}
+                      </Badge>
 
-                    {company.validation_status === 'pending' && (
-                      <div className="flex gap-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleUpdateStatus(company.id, 'approved')}
-                        >
-                          Aprobar
-                        </Button>
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={() => handleUpdateStatus(company.id, 'rejected')}
-                        >
-                          Rechazar
-                        </Button>
-                      </div>
-                    )}
+                      {company.validation_status === 'pending' && (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleUpdateStatus(company.id, 'approved')}
+                          >
+                            Aprobar
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleUpdateStatus(company.id, 'rejected')}
+                          >
+                            Rechazar
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
