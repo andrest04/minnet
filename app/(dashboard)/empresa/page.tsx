@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { Building2, User, Briefcase, Clock, XCircle, Loader2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
-import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Profile {
   id: string;
@@ -72,17 +75,12 @@ export default function EmpresaPage() {
     checkAuthAndLoadProfile();
   }, [checkAuthAndLoadProfile]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando...</p>
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Cargando tu cuenta...</p>
         </div>
       </div>
     );
@@ -93,101 +91,87 @@ export default function EmpresaPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-primary">Panel de Empresa</h1>
-          <p className="text-muted-foreground">{profile?.company_name}</p>
-        </div>
-        <Button variant="outline" onClick={handleLogout}>
-          Cerrar sesión
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Panel de Empresa</h1>
+        <p className="text-muted-foreground">{profile?.company_name}</p>
       </div>
 
       {isPending && (
-        <div className="bg-warning/10 border border-warning/20 rounded-xl p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-full bg-warning/20 flex items-center justify-center flex-shrink-0">
-              <svg className="w-6 h-6 text-warning" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-warning mb-1">Cuenta en Revisión</h3>
-              <p className="text-sm text-muted-foreground">
-                Tu cuenta está siendo revisada por un administrador. Recibirás acceso completo a
-                los indicadores una vez que tu identidad sea verificada.
-              </p>
-            </div>
-          </div>
-        </div>
+        <Alert className="border-amber-200 bg-amber-50">
+          <Clock className="h-5 w-5 text-amber-600" />
+          <AlertDescription className="text-sm text-amber-900">
+            <span className="font-semibold block mb-1">Cuenta en Revisión</span>
+            Tu cuenta está siendo revisada por un administrador. Recibirás acceso completo a
+            los indicadores una vez que tu identidad sea verificada.
+          </AlertDescription>
+        </Alert>
       )}
 
       {isRejected && (
-        <div className="bg-error/10 border border-error/20 rounded-xl p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-full bg-error/20 flex items-center justify-center flex-shrink-0">
-              <svg className="w-6 h-6 text-error" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-error mb-1">Cuenta Rechazada</h3>
-              <p className="text-sm text-muted-foreground">
-                Tu solicitud de acceso ha sido rechazada. Por favor, contacta al administrador
-                para más información.
-              </p>
-            </div>
-          </div>
-        </div>
+        <Alert className="border-red-200 bg-red-50">
+          <XCircle className="h-5 w-5 text-red-600" />
+          <AlertDescription className="text-sm text-red-900">
+            <span className="font-semibold block mb-1">Cuenta Rechazada</span>
+            Tu solicitud de acceso ha sido rechazada. Por favor, contacta al administrador
+            para más información.
+          </AlertDescription>
+        </Alert>
       )}
 
-      <div className="bg-white p-6 rounded-xl border border-border">
-        <h2 className="text-xl font-bold text-foreground mb-4">Información de tu Cuenta</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-muted-foreground">Nombre</p>
-            <p className="font-semibold text-foreground">{profile?.full_name}</p>
+      <Card className="border-border">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-primary" />
+            <CardTitle>Información de tu Cuenta</CardTitle>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Cargo</p>
-            <p className="font-semibold text-foreground">{profile?.position}</p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground">Nombre</p>
+                <p className="font-semibold text-foreground">{profile?.full_name}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground">Cargo</p>
+                <p className="font-semibold text-foreground">{profile?.position}</p>
+              </div>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Estado de la Cuenta</p>
+              <Badge
+                variant={isPending ? 'secondary' : isRejected ? 'destructive' : 'default'}
+                className={isPending ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' : ''}
+              >
+                {isPending ? 'Pendiente' : isRejected ? 'Rechazada' : 'Aprobada'}
+              </Badge>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Estado</p>
-            <span
-              className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                isPending
-                  ? 'bg-warning/10 text-warning'
-                  : isRejected
-                  ? 'bg-error/10 text-error'
-                  : 'bg-success/10 text-success'
-              }`}
-            >
-              {isPending ? 'Pendiente' : isRejected ? 'Rechazada' : 'Aprobada'}
-            </span>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {!isPending && !isRejected && (
-        <div className="bg-white p-6 rounded-xl border border-border">
-          <h2 className="text-xl font-bold text-foreground mb-4">Indicadores y Reportes</h2>
-          <p className="text-muted-foreground">
-            Esta sección mostrará los indicadores estratégicos de las comunidades asociadas a
-            tus proyectos asignados.
-          </p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Por ahora, el sistema está en fase de recolección de datos.
-          </p>
-        </div>
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle>Indicadores y Reportes</CardTitle>
+            <CardDescription>
+              Métricas estratégicas de las comunidades asociadas
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-muted-foreground">
+              Esta sección mostrará los indicadores estratégicos de las comunidades asociadas a
+              tus proyectos asignados.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Por ahora, el sistema está en fase de recolección de datos.
+            </p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
