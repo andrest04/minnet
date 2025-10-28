@@ -1,32 +1,37 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
-import { identifierType } from '@/lib/validations';
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { User, Loader2 } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { identifierType } from '@/lib/validations'
+import { toast } from 'sonner'
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [identifier, setIdentifier] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter()
+  const [identifier, setIdentifier] = useState('')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+    e.preventDefault()
+    setError('')
 
-    // Validar el identificador
-    const type = identifierType(identifier);
+    const type = identifierType(identifier)
 
     if (type === 'invalid') {
-      setError(
+      const errorMsg =
         'Por favor, ingresa un email válido o un teléfono de 9 dígitos que empiece con 9'
-      );
-      return;
+      setError(errorMsg)
+      toast.error(errorMsg)
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
       const response = await fetch('/api/auth/send-otp', {
@@ -35,76 +40,91 @@ export default function LoginPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ identifier }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || 'Error al enviar código de verificación');
-        setIsLoading(false);
-        return;
+        const errorMsg = data.error || 'Error al enviar código de verificación'
+        setError(errorMsg)
+        toast.error(errorMsg)
+        setIsLoading(false)
+        return
       }
 
-      // Redirigir a la página de verificación con el identificador
+      toast.success('Código enviado correctamente')
       router.push(
         `/verify-otp?identifier=${encodeURIComponent(data.identifier)}&type=${data.identifier_type}`
-      );
+      )
     } catch (err) {
-      console.error('Error al enviar OTP:', err);
-      setError('Error de conexión. Por favor, intenta nuevamente.');
-      setIsLoading(false);
+      console.error('Error al enviar OTP:', err)
+      const errorMsg = 'Error de conexión. Por favor, intenta nuevamente.'
+      setError(errorMsg)
+      toast.error(errorMsg)
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="w-full">
-      <div className="bg-white rounded-2xl shadow-xl p-8">
-        <h2 className="text-2xl font-bold text-primary mb-2">
-          Iniciar sesión
-        </h2>
-        <p className="text-muted-foreground mb-6">
-          Ingresa tu email o número de teléfono para recibir un código de
-          verificación
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Email o Teléfono"
-            placeholder="ejemplo@correo.com o 987654321"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            error={error}
-            helperText="Para teléfonos: solo números, 9 dígitos, empezando con 9"
-            disabled={isLoading}
-            leftIcon={
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+    <div className="w-full space-y-6">
+      <Card className="border-border shadow-sm">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-foreground">
+            Iniciar sesión
+          </CardTitle>
+          <CardDescription className="text-base">
+            Ingresa tu email o número de teléfono para recibir un código de
+            verificación
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="identifier">Email o Teléfono</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="identifier"
+                  type="text"
+                  placeholder="ejemplo@correo.com o 987654321"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  disabled={isLoading}
+                  className="pl-10"
+                  aria-invalid={!!error}
+                  aria-describedby={error ? 'identifier-error' : 'identifier-help'}
                 />
-              </svg>
-            }
-          />
+              </div>
+              {error ? (
+                <p id="identifier-error" className="text-sm text-destructive">
+                  {error}
+                </p>
+              ) : (
+                <p id="identifier-help" className="text-xs text-muted-foreground">
+                  Para teléfonos: solo números, 9 dígitos, empezando con 9
+                </p>
+              )}
+            </div>
 
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            fullWidth
-            isLoading={isLoading}
-          >
-            {isLoading ? 'Enviando código...' : 'Continuar'}
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Enviando código...
+                </>
+              ) : (
+                'Continuar'
+              )}
+            </Button>
+          </form>
 
-        <div className="mt-6 pt-6 border-t border-border">
+          <Separator className="my-6" />
+
           <p className="text-sm text-muted-foreground text-center">
             Al continuar, aceptas nuestros{' '}
             <a href="#" className="text-primary font-medium hover:underline">
@@ -115,16 +135,13 @@ export default function LoginPage() {
               Política de Privacidad
             </a>
           </p>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Información adicional */}
-      <div className="mt-6 text-center">
-        <p className="text-sm text-muted-foreground">
-          ¿Primera vez aquí? No te preocupes, te guiaremos en el proceso de
-          registro.
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground text-center">
+        ¿Primera vez aquí? No te preocupes, te guiaremos en el proceso de
+        registro.
+      </p>
     </div>
-  );
+  )
 }

@@ -2,8 +2,12 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
+import { ArrowLeft, Loader2, AlertCircle, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { validateOTP } from '@/lib/validations';
+import { toast } from 'sonner';
 
 function VerifyOTPContent() {
   const router = useRouter();
@@ -99,7 +103,9 @@ function VerifyOTPContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Error al verificar código');
+        const errorMsg = data.error || 'Error al verificar código';
+        setError(errorMsg);
+        toast.error(errorMsg);
         setIsLoading(false);
         setCode(['', '', '', '', '', '']);
         inputRefs.current[0]?.focus();
@@ -126,7 +132,9 @@ function VerifyOTPContent() {
       }
     } catch (err) {
       console.error('Error al verificar OTP:', err);
-      setError('Error de conexión. Por favor, intenta nuevamente.');
+      const errorMsg = 'Error de conexión. Por favor, intenta nuevamente.';
+      setError(errorMsg);
+      toast.error(errorMsg);
       setIsLoading(false);
     }
   };
@@ -147,7 +155,9 @@ function VerifyOTPContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Error al reenviar código');
+        const errorMsg = data.error || 'Error al reenviar código';
+        setError(errorMsg);
+        toast.error(errorMsg);
         setIsResending(false);
         return;
       }
@@ -155,50 +165,40 @@ function VerifyOTPContent() {
       // Limpiar código y mostrar mensaje de éxito
       setCode(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
-      alert('Código reenviado correctamente');
+      toast.success('Código reenviado correctamente');
     } catch (err) {
       console.error('Error al reenviar OTP:', err);
-      setError('Error de conexión. Por favor, intenta nuevamente.');
+      const errorMsg = 'Error de conexión. Por favor, intenta nuevamente.';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsResending(false);
     }
   };
 
   return (
-    <div className="w-full">
-      <div className="bg-white rounded-2xl shadow-xl p-8">
-        {/* Botón de regresar */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+    <div className="w-full space-y-6">
+      <Card className="border-border shadow-sm">
+        <CardHeader className="space-y-1">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          Volver
-        </button>
+            <ArrowLeft className="h-4 w-4" />
+            Volver
+          </button>
+          <CardTitle className="text-2xl font-bold text-foreground pt-4">
+            Verificar código
+          </CardTitle>
+          <CardDescription className="text-base">
+            Ingresa el código de 6 dígitos enviado a{' '}
+            <span className="font-medium text-foreground">
+              {type === 'email' ? 'tu email' : 'tu teléfono'}
+            </span>
+          </CardDescription>
+        </CardHeader>
 
-        <h2 className="text-2xl font-bold text-primary mb-2">
-          Verificar código
-        </h2>
-        <p className="text-muted-foreground mb-8">
-          Ingresa el código de 6 dígitos enviado a{' '}
-          <span className="font-medium text-foreground">
-            {type === 'email' ? 'tu email' : 'tu teléfono'}
-          </span>
-        </p>
-
-        <div className="space-y-6">
+        <CardContent className="space-y-6">
           {/* Inputs de OTP */}
           <div className="flex gap-3 justify-center" onPaste={handlePaste}>
             {code.map((digit, index) => (
@@ -216,7 +216,7 @@ function VerifyOTPContent() {
                 disabled={isLoading}
                 className={`w-12 h-14 text-center text-2xl font-bold rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
                   error
-                    ? 'border-error'
+                    ? 'border-destructive'
                     : digit
                     ? 'border-primary bg-primary/5'
                     : 'border-border'
@@ -226,31 +226,26 @@ function VerifyOTPContent() {
           </div>
 
           {error && (
-            <p className="text-sm text-error text-center flex items-center justify-center gap-1">
-              <svg
-                className="w-4 h-4"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
+            <p className="text-sm text-destructive text-center flex items-center justify-center gap-1">
+              <AlertCircle className="h-4 w-4" />
               {error}
             </p>
           )}
 
           <Button
-            variant="primary"
+            className="w-full"
             size="lg"
-            fullWidth
             onClick={() => handleVerify()}
-            isLoading={isLoading}
-            disabled={code.some((digit) => digit === '')}
+            disabled={code.some((digit) => digit === '') || isLoading}
           >
-            {isLoading ? 'Verificando...' : 'Verificar código'}
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Verificando...
+              </>
+            ) : (
+              'Verificar código'
+            )}
           </Button>
 
           <div className="text-center">
@@ -262,15 +257,16 @@ function VerifyOTPContent() {
               {isResending ? 'Reenviando...' : '¿No recibiste el código? Reenviar'}
             </button>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Información adicional */}
-      <div className="mt-6 p-4 bg-info/10 rounded-lg border border-info/20">
-        <p className="text-sm text-info text-center">
-          💡 En modo desarrollo, el código OTP se muestra en la consola del servidor
-        </p>
-      </div>
+      <Alert className="border-blue-200 bg-blue-50">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-sm text-blue-800">
+          En modo desarrollo, el código OTP se muestra en la consola del servidor
+        </AlertDescription>
+      </Alert>
     </div>
   );
 }

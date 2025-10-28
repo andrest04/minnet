@@ -2,12 +2,15 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { Stepper } from '@/components/auth/Stepper';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Step1 } from './Step1';
 import { Step2 } from './Step2';
 import { Step3 } from './Step3';
 import type { PobladorRegistrationData } from '@/lib/types';
+import { toast } from 'sonner';
 
 function RegisterPobladorContent() {
   const router = useRouter();
@@ -64,7 +67,8 @@ function RegisterPobladorContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.error || 'Error al registrar');
+        const errorMsg = data.error || 'Error al registrar';
+        toast.error(errorMsg);
         setIsSubmitting(false);
         return;
       }
@@ -72,10 +76,11 @@ function RegisterPobladorContent() {
       localStorage.setItem('user_id', data.user_id);
       localStorage.setItem('user_type', 'poblador');
 
+      toast.success('Registro exitoso. Redirigiendo...');
       router.push('/poblador');
     } catch (error) {
       console.error('Error al registrar:', error);
-      alert('Error de conexión. Intenta nuevamente.');
+      toast.error('Error de conexión. Intenta nuevamente.');
       setIsSubmitting(false);
     }
   };
@@ -102,34 +107,37 @@ function RegisterPobladorContent() {
 
   return (
     <div className="w-full max-w-2xl">
-      <div className="bg-white rounded-2xl shadow-xl p-8">
-        <button
-          onClick={() => router.push('/login')}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Volver al inicio
-        </button>
+      <Card className="border-border shadow-sm">
+        <CardHeader className="space-y-1">
+          <button
+            onClick={() => router.push('/login')}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver al inicio
+          </button>
+          <CardTitle className="text-2xl font-bold text-foreground pt-4">
+            Registro de Poblador
+          </CardTitle>
+          <CardDescription className="text-base">
+            Completa tu información para acceder a la plataforma
+          </CardDescription>
+        </CardHeader>
 
-        <h2 className="text-2xl font-bold text-primary mb-2">Registro de Poblador</h2>
-        <p className="text-muted-foreground mb-6">
-          Completa tu información para acceder a la plataforma
-        </p>
+        <CardContent className="space-y-6">
+          <Stepper steps={steps} currentStep={currentStep} />
 
-        <Stepper steps={steps} currentStep={currentStep} />
+          <div>{renderStep()}</div>
 
-        <div className="mt-8">{renderStep()}</div>
-
-        {currentStep > 0 && currentStep < 2 && (
-          <div className="mt-6 pt-6 border-t border-border">
-            <Button variant="ghost" onClick={handleBack} disabled={isSubmitting}>
-              Atrás
-            </Button>
-          </div>
-        )}
-      </div>
+          {currentStep > 0 && currentStep < 2 && (
+            <div className="pt-6 border-t border-border">
+              <Button variant="ghost" onClick={handleBack} disabled={isSubmitting}>
+                Atrás
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

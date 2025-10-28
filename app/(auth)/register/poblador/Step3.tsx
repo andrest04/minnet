@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Select } from '@/components/ui/Select';
-import { Button } from '@/components/ui/Button';
+import { Check, Loader2 } from 'lucide-react';
+import { Select } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import {
   TOPICS_OF_INTEREST,
   KNOWLEDGE_LEVELS,
@@ -82,7 +83,7 @@ export const Step3 = ({ formData, updateFormData, onSubmit, isSubmitting }: Step
           ))}
         </div>
         {errors.topics_interest && (
-          <p className="mt-2 text-sm text-error">{errors.topics_interest}</p>
+          <p className="mt-2 text-sm text-destructive">{errors.topics_interest}</p>
         )}
       </div>
 
@@ -119,13 +120,7 @@ export const Step3 = ({ formData, updateFormData, onSubmit, isSubmitting }: Step
                 }`}
               >
                 {formData.participation_willingness?.includes(option.value) && (
-                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  <Check className="w-3 h-3 text-white" />
                 )}
               </div>
               <span className="text-sm font-medium">{option.label}</span>
@@ -133,19 +128,25 @@ export const Step3 = ({ formData, updateFormData, onSubmit, isSubmitting }: Step
           ))}
         </div>
         {errors.participation_willingness && (
-          <p className="mt-2 text-sm text-error">{errors.participation_willingness}</p>
+          <p className="mt-2 text-sm text-destructive">{errors.participation_willingness}</p>
         )}
       </div>
 
       <div className="pt-4">
         <Button
-          variant="primary"
+          className="w-full"
           size="lg"
-          fullWidth
           onClick={handleSubmit}
-          isLoading={isSubmitting}
+          disabled={isSubmitting}
         >
-          {isSubmitting ? 'Registrando...' : 'Completar registro'}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Registrando...
+            </>
+          ) : (
+            'Completar registro'
+          )}
         </Button>
       </div>
     </div>

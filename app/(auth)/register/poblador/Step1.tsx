@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Select } from '@/components/ui/Select';
-import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { AGE_RANGES, EDUCATION_LEVELS } from '@/lib/validations';
 import type { PobladorRegistrationData } from '@/lib/types';
 
@@ -132,7 +133,7 @@ export const Step1 = ({ formData, updateFormData, onNext }: Step1Props) => {
         error={errors.education_level}
       />
 
-      <Button variant="primary" size="lg" fullWidth onClick={handleNext}>
+      <Button className="w-full" size="lg" onClick={handleNext}>
         Siguiente
       </Button>
     </div>

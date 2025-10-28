@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Select, SelectOption } from '@/components/ui/Select';
-import { Checkbox } from '@/components/ui/Checkbox';
-import { Button } from '@/components/ui/Button';
+import { Select, SelectOption } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import { PROFESSIONS } from '@/lib/validations';
 import type { PobladorRegistrationData } from '@/lib/types';
 
@@ -92,7 +92,7 @@ export const Step2 = ({ formData, updateFormData, onNext }: Step2Props) => {
         />
       </div>
 
-      <Button variant="primary" size="lg" fullWidth onClick={handleNext}>
+      <Button className="w-full" size="lg" onClick={handleNext}>
         Siguiente
       </Button>
     </div>

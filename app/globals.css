@@ -1,64 +1,124 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Colores principales del logo MinneT */
-  --primary: #0F3D5C;        /* Azul navy oscuro */
-  --primary-light: #4A8FB3;  /* Azul medio */
-  --secondary: #5FBEAA;      /* Turquesa/verde agua */
-  --secondary-light: #7DD9C6;/* Turquesa claro */
-  --accent: #F39C4D;         /* Naranja */
-  --neutral: #F5F1E8;        /* Beige del fondo */
+  /* 🎨 Colores de MinneT - Base del diseño */
+  --primary: 210 70% 22%;           /* #0F3D5C - Azul navy oscuro */
+  --primary-light: 202 50% 49%;     /* #4A8FB3 - Azul medio */
+  --secondary: 168 48% 56%;         /* #5FBEAA - Turquesa */
+  --secondary-light: 168 59% 65%;   /* #7DD9C6 - Turquesa claro */
+  --accent: 28 88% 63%;             /* #F39C4D - Naranja */
+  --neutral-bg: 40 33% 94%;         /* #F5F1E8 - Beige claro */
 
-  /* Colores de UI */
-  --background: #FAFAF9;
-  --foreground: #1C1917;
-  --muted: #F5F5F4;
-  --muted-foreground: #78716C;
-  --border: #E7E5E4;
+  /* 📐 Variables de Shadcn/ui - Mapeadas a colores MinneT */
+  --background: 40 33% 94%;         /* Beige claro para fondo general */
+  --foreground: 24 10% 10%;         /* #1C1917 - Texto principal oscuro */
 
-  /* Colores de estado */
-  --success: #5FBEAA;
-  --warning: #F39C4D;
-  --error: #EF4444;
-  --info: #4A8FB3;
+  --card: 0 0% 100%;                /* Blanco para cards */
+  --card-foreground: 24 10% 10%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 24 10% 10%;
+
+  --primary-foreground: 0 0% 100%;  /* Texto blanco sobre primary */
+
+  --secondary-foreground: 0 0% 100%; /* Texto blanco sobre secondary */
+
+  --accent-foreground: 0 0% 100%;   /* Texto blanco sobre accent */
+
+  --muted: 60 5% 96%;               /* #F5F5F4 - Fondos deshabilitados */
+  --muted-foreground: 25 5% 45%;    /* #78716C - Texto secundario */
+
+  --destructive: 0 84% 60%;         /* #EF4444 - Rojo error */
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 20 6% 90%;              /* #E7E5E4 - Bordes sutiles */
+  --input: 20 6% 90%;
+  --ring: 210 70% 22%;              /* Primary para focus rings */
+
+  --radius: 0.5rem;                 /* Border radius base */
+
+  /* Colores para charts (usando paleta MinneT) */
+  --chart-1: 210 70% 22%;           /* Primary */
+  --chart-2: 168 48% 56%;           /* Secondary */
+  --chart-3: 28 88% 63%;            /* Accent */
+  --chart-4: 202 50% 49%;           /* Primary light */
+  --chart-5: 168 59% 65%;           /* Secondary light */
+
+  /* Sidebar */
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 24 10% 10%;
+  --sidebar-primary: 210 70% 22%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 60 5% 96%;
+  --sidebar-accent-foreground: 24 10% 10%;
+  --sidebar-border: 20 6% 90%;
+  --sidebar-ring: 210 70% 22%;
 }
 
 @theme inline {
-  --color-primary: var(--primary);
-  --color-primary-light: var(--primary-light);
-  --color-secondary: var(--secondary);
-  --color-secondary-light: var(--secondary-light);
-  --color-accent: var(--accent);
-  --color-neutral: var(--neutral);
+  /* 🎨 Colores de MinneT para usar directamente en Tailwind */
+  /* Uso: bg-primary, text-secondary, border-accent, etc. */
+  --color-primary: #0F3D5C;
+  --color-primary-light: #4A8FB3;
+  --color-secondary: #5FBEAA;
+  --color-secondary-light: #7DD9C6;
+  --color-accent: #F39C4D;
+  --color-neutral-bg: #F5F1E8;
 
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border);
+  /* Colores de UI */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-border: hsl(var(--border));
 
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-error: var(--error);
-  --color-info: var(--info);
+  /* Colores de estado */
+  --color-success: #5FBEAA;  /* Turquesa */
+  --color-warning: #F39C4D;  /* Naranja */
+  --color-error: #EF4444;    /* Rojo */
+  --color-info: #4A8FB3;     /* Azul claro */
 
+  /* Colores de Shadcn/ui */
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  /* Fuentes Geist */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Border radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* Dark mode (opcional - por ahora minimalista solo usa light) */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0F1419;
-    --foreground: #F5F5F4;
-    --muted: #1C2128;
-    --muted-foreground: #A8A29E;
-    --border: #2D333B;
+    --background: 24 10% 10%;        /* Fondo oscuro */
+    --foreground: 40 33% 94%;        /* Texto claro */
+    --muted: 0 0% 15%;
+    --muted-foreground: 25 5% 65%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --card: 0 0% 12%;
+    --card-foreground: 40 33% 94%;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -67,4 +127,48 @@ body {
 /* Utility classes */
 .text-balance {
   text-wrap: balance;
+}
+
+.dark {
+  --background: 24 10% 10%;
+  --foreground: 40 33% 94%;
+  --card: 0 0% 12%;
+  --card-foreground: 40 33% 94%;
+  --popover: 0 0% 12%;
+  --popover-foreground: 40 33% 94%;
+  --primary: 210 70% 22%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 168 48% 56%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 25 5% 65%;
+  --accent: 28 88% 63%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 20%;
+  --input: 0 0% 20%;
+  --ring: 210 70% 50%;
+  --chart-1: 210 70% 22%;
+  --chart-2: 168 48% 56%;
+  --chart-3: 28 88% 63%;
+  --chart-4: 202 50% 49%;
+  --chart-5: 168 59% 65%;
+  --sidebar: 0 0% 12%;
+  --sidebar-foreground: 40 33% 94%;
+  --sidebar-primary: 210 70% 22%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 15%;
+  --sidebar-accent-foreground: 40 33% 94%;
+  --sidebar-border: 0 0% 20%;
+  --sidebar-ring: 210 70% 50%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

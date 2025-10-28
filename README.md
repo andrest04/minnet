@@ -6,7 +6,7 @@ Sistema completo de autenticación, registro y gestión para conectar comunidade
 
 ### ✅ Sistema 100% Funcional
 
-**Última actualización**: Octubre 27, 2024
+**Última actualización**: Octubre 28, 2025
 
 El MVP está completamente implementado y listo para despliegue en producción.
 
@@ -105,12 +105,14 @@ El MVP está completamente implementado y listo para despliegue en producción.
 - ✅ GET `/api/admin/stats` - Estadísticas del sistema
 
 ### 8. 🛡️ Seguridad
+- ✅ Middleware de autenticación (proxy.ts) con validación de sesiones
 - ✅ Protección de rutas por tipo de usuario
-- ✅ Validación de sesiones con localStorage
+- ✅ Validación de sesiones con Supabase SSR
 - ✅ Redirecciones automáticas según permisos
 - ✅ RLS (Row Level Security) en Supabase
 - ✅ Validación de tipos con TypeScript strict mode
 - ✅ Sanitización de inputs
+- ✅ Rate limiting OTP (3 intentos/hora)
 
 ### 9. 🎨 Branding
 - ✅ Logo completo implementado en páginas de auth
@@ -225,10 +227,11 @@ minnet/
 ├── lib/
 │   ├── supabase/
 │   │   ├── client.ts             # ✅ Cliente Supabase
-│   │   ├── server.ts             # ✅ Cliente server-side
 │   │   └── database.types.ts     # ✅ Tipos generados
 │   ├── validations.ts            # ✅ Todas las validaciones
-│   └── types.ts                  # ✅ Tipos TypeScript
+│   ├── types.ts                  # ✅ Tipos TypeScript
+│   ├── auth.ts                   # ✅ Funciones de autenticación
+│   └── env.ts                    # ✅ Validación de variables de entorno
 │
 ├── public/
 │   └── assets/
@@ -240,9 +243,11 @@ minnet/
 │
 ├── utils/
 │   └── supabase/
-│       └── server.ts             # ✅ Helpers server-side
+│       ├── server.ts             # ✅ Cliente server-side
+│       └── client.ts             # ✅ Cliente client-side
 │
 ├── .env.local.example            # Template variables
+├── proxy.ts                      # ✅ Middleware de autenticación
 ├── CLAUDE.md                     # Guía para Claude Code
 ├── DEPLOYMENT.md                 # Guía de despliegue
 ├── README.md                     # Este archivo
@@ -339,13 +344,14 @@ Para migrar a producción, consulta [DEPLOYMENT.md](./DEPLOYMENT.md) para:
 
 ## 🔧 Tecnologías
 
-- **Framework**: Next.js 16 (App Router)
-- **React**: 19
+- **Framework**: Next.js 16.0.0 (App Router)
+- **React**: 19.2.0
 - **TypeScript**: ^5 (Strict mode)
-- **Estilos**: Tailwind CSS v4
-- **Base de Datos**: Supabase (PostgreSQL)
-- **Autenticación**: OTP (SMS/Email)
-- **Optimización**: Next.js Image, Font optimization
+- **Estilos**: Tailwind CSS v4 con PostCSS
+- **Base de Datos**: Supabase (PostgreSQL) con SSR
+- **Autenticación**: Supabase Auth con OTP (SMS/Email)
+- **Analytics**: Vercel Analytics & Speed Insights
+- **Optimización**: Next.js Image, Font optimization (Geist)
 
 ## 📚 Documentación Adicional
 
