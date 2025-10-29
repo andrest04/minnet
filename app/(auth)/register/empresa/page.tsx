@@ -29,6 +29,7 @@ function RegisterEmpresaContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const identifier = searchParams.get("identifier");
+  const type = searchParams.get("type");
 
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
   const [formData, setFormData] = useState<Partial<EmpresaRegistrationData>>({
@@ -106,9 +107,11 @@ function RegisterEmpresaContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          identifier_type: type,
           user_type: "empresa",
           consent_version: "1.0",
           consent_date: new Date().toISOString(),
+          consent: consent,
         }),
       });
 
@@ -121,8 +124,7 @@ function RegisterEmpresaContent() {
         return;
       }
 
-      localStorage.setItem("user_id", data.user_id);
-      localStorage.setItem("user_type", "empresa");
+      // La sesión se gestiona automáticamente con cookies HTTP-only de Supabase
 
       toast.success(
         "Registro exitoso. Tu cuenta será revisada por un administrador."
@@ -131,6 +133,8 @@ function RegisterEmpresaContent() {
     } catch (error) {
       console.error("Error al registrar:", error);
       toast.error("Error de conexión. Intenta nuevamente.");
+      setIsSubmitting(false);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -155,11 +159,17 @@ function RegisterEmpresaContent() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Sección: Información Básica */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Nombre Completo
-              </label>
+              <h3 className="text-base font-semibold text-foreground mb-4">
+                Información Básica
+              </h3>
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Nombre Completo <span className="text-destructive">*</span>
+                  </label>
               <Input
                 placeholder="Ej: Juan Pérez García"
                 value={formData.full_name || ""}
@@ -174,10 +184,10 @@ function RegisterEmpresaContent() {
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Empresa / Institución
-              </label>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Empresa / Institución <span className="text-destructive">*</span>
+                  </label>
               <Input
                 placeholder="Ej: Minera Las Bambas S.A."
                 value={formData.company_name || ""}
@@ -190,12 +200,12 @@ function RegisterEmpresaContent() {
                   {errors.company_name}
                 </p>
               )}
-            </div>
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Cargo
-              </label>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Cargo <span className="text-destructive">*</span>
+                  </label>
               <Select
                 placeholder="Selecciona tu cargo"
                 value={formData.position || ""}
@@ -209,12 +219,20 @@ function RegisterEmpresaContent() {
                   {errors.position}
                 </p>
               )}
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-3">
-                Proyectos Asignados
-              </label>
+            {/* Sección: Proyectos Asignados */}
+            <div className="pt-4 border-t border-border">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-semibold text-foreground">
+                  Proyectos Asignados <span className="text-destructive">*</span>
+                </h3>
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md">
+                  {formData.assigned_projects?.length || 0} seleccionado{(formData.assigned_projects?.length || 0) !== 1 ? 's' : ''}
+                </span>
+              </div>
               <div className="space-y-2">
                 {projects.map((project) => (
                   <button
@@ -249,9 +267,10 @@ function RegisterEmpresaContent() {
               )}
             </div>
 
+            {/* Sección: Preferencias */}
             <div className="pt-4 border-t border-border">
-              <h3 className="text-sm font-semibold text-foreground mb-3">
-                Preferencias (Opcional)
+              <h3 className="text-base font-semibold text-foreground mb-4">
+                Preferencias <span className="text-xs text-muted-foreground font-normal">(Opcional)</span>
               </h3>
 
               <div className="space-y-4">
@@ -287,7 +306,11 @@ function RegisterEmpresaContent() {
               </div>
             </div>
 
+            {/* Sección: Consentimiento */}
             <div className="pt-4 border-t border-border">
+              <h3 className="text-base font-semibold text-foreground mb-4">
+                Consentimiento <span className="text-destructive">*</span>
+              </h3>
               <Checkbox
                 label={
                   <span className="text-sm">

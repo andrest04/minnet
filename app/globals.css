@@ -104,11 +104,11 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* Dark mode (opcional - por ahora minimalista solo usa light) */
-@media (prefers-color-scheme: dark) {
+/* Dark mode deshabilitado - usando solo tema claro */
+/* @media (prefers-color-scheme: dark) {
   :root {
-    --background: 24 10% 10%;        /* Fondo oscuro */
-    --foreground: 40 33% 94%;        /* Texto claro */
+    --background: 24 10% 10%;
+    --foreground: 40 33% 94%;
     --muted: 0 0% 15%;
     --muted-foreground: 25 5% 65%;
     --border: 0 0% 20%;
@@ -116,7 +116,7 @@
     --card: 0 0% 12%;
     --card-foreground: 40 33% 94%;
   }
-}
+} */
 
 body {
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
@@ -129,7 +129,8 @@ body {
   text-wrap: balance;
 }
 
-.dark {
+/* Clase .dark deshabilitada - usando solo tema claro */
+/* .dark {
   --background: 24 10% 10%;
   --foreground: 40 33% 94%;
   --card: 0 0% 12%;
@@ -162,7 +163,7 @@ body {
   --sidebar-accent-foreground: 40 33% 94%;
   --sidebar-border: 0 0% 20%;
   --sidebar-ring: 210 70% 50%;
-}
+} */
 
 @layer base {
   * {

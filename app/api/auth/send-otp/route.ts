@@ -1,13 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import {
-  identifierType,
-  generateOTP,
-  getOTPExpiration,
-  cleanPhone,
-} from '@/lib/validations';
-
-const MAX_ATTEMPTS_PER_HOUR = 3;
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server";
+import { identifierType, cleanPhone } from "@/lib/validations";
+import { AuthOtpResponse } from "@supabase/supabase-js";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,108 +9,84 @@ export async function POST(request: NextRequest) {
 
     if (!identifier) {
       return NextResponse.json(
-        { success: false, error: 'Se requiere email o teléfono' },
+        { success: false, error: "Se requiere email o teléfono" },
         { status: 400 }
       );
     }
 
-    // Validar el tipo de identificador
     const type = identifierType(identifier);
-
-    if (type === 'invalid') {
+    if (type === "invalid") {
       return NextResponse.json(
         {
           success: false,
-          error: 'Email o teléfono inválido. El teléfono debe tener 9 dígitos y empezar con 9.',
+          error:
+            "Email o teléfono inválido. El teléfono debe tener 9 dígitos y empezar con 9.",
         },
         { status: 400 }
       );
     }
-
-    // Normalizar el identificador
-    const normalizedIdentifier =
-      type === 'phone' ? cleanPhone(identifier) : identifier.toLowerCase().trim();
 
     const supabase = await createClient();
+    let response: AuthOtpResponse;
+    let normalizedIdentifier: string;
+    let successMessage: string;
 
-    // Verificar límite de intentos en la última hora
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    const { data: recentAttempts, error: attemptsError } = await supabase
-      .from('otp_codes')
-      .select('id')
-      .eq('identifier', normalizedIdentifier)
-      .gte('created_at', oneHourAgo.toISOString());
+    if (type === "email") {
+      normalizedIdentifier = identifier.toLowerCase().trim();
+      response = await supabase.auth.signInWithOtp({
+        email: normalizedIdentifier,
+      });
+      successMessage = "Código enviado a tu email";
+    } else {
+      normalizedIdentifier = "+51" + cleanPhone(identifier);
+      console.log("Intentando enviar OTP a teléfono:", normalizedIdentifier);
+      response = await supabase.auth.signInWithOtp({
+        phone: normalizedIdentifier,
+      });
+      successMessage = "Código enviado por SMS";
+    }
 
-    if (attemptsError) {
-      console.error('Error al verificar intentos:', attemptsError);
+    if (response.error) {
+      console.error(
+        `Error de Supabase al enviar OTP (${type}):`,
+        response.error
+      );
+      let errorMessage =
+        response.error.message || "Error al enviar código de verificación";
+      let status = response.error.status || 500;
+
+      if (errorMessage.includes("rate limit")) {
+        errorMessage = "Has excedido el límite de intentos. Intenta más tarde.";
+        status = 429;
+      } else if (errorMessage.includes("valid phone number")) {
+        errorMessage =
+          "Número de teléfono inválido. Asegúrate que tenga 9 dígitos y empiece con 9.";
+        status = 400;
+      } else if (status === 500) {
+        errorMessage = "Error interno al enviar el código. Intenta de nuevo.";
+      }
+
       return NextResponse.json(
-        { success: false, error: 'Error al verificar intentos' },
-        { status: 500 }
+        { success: false, error: errorMessage },
+        { status }
       );
     }
 
-    if (recentAttempts && recentAttempts.length >= MAX_ATTEMPTS_PER_HOUR) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Has excedido el límite de intentos. Por favor, intenta más tarde.',
-        },
-        { status: 429 }
-      );
-    }
-
-    // Generar código OTP
-    const code = generateOTP();
-    const expiresAt = getOTPExpiration(5); // 5 minutos
-
-    // Guardar OTP en la base de datos
-    const { error: insertError } = await supabase.from('otp_codes').insert({
-      identifier: normalizedIdentifier,
-      code,
-      expires_at: expiresAt.toISOString(),
-      attempts: 0,
-      verified: false,
-    } as never);
-
-    if (insertError) {
-      console.error('Error al guardar OTP:', insertError);
-      return NextResponse.json(
-        { success: false, error: 'Error al generar código de verificación' },
-        { status: 500 }
-      );
-    }
-
-    // En modo desarrollo, mostrar el código en la consola
-    console.log('─────────────────────────────────────');
-    console.log('🔐 CÓDIGO OTP GENERADO (Modo Dev)');
-    console.log('─────────────────────────────────────');
-    console.log(`Identificador: ${normalizedIdentifier}`);
-    console.log(`Tipo: ${type === 'email' ? 'Email' : 'Teléfono'}`);
-    console.log(`Código: ${code}`);
-    console.log(`Expira: ${expiresAt.toLocaleString('es-PE')}`);
-    console.log('─────────────────────────────────────');
-
-    // En producción, aquí se enviaría el OTP por SMS o email
-    // if (type === 'email') {
-    //   await sendEmailOTP(normalizedIdentifier, code);
-    // } else {
-    //   await sendSMSOTP(normalizedIdentifier, code);
-    // }
+    console.log(`Supabase envió OTP a ${normalizedIdentifier} (${type})`);
 
     return NextResponse.json({
       success: true,
       identifier: normalizedIdentifier,
       identifier_type: type,
-      expires_at: expiresAt.toISOString(),
-      message:
-        type === 'email'
-          ? 'Código enviado a tu email'
-          : 'Código enviado por SMS',
+      message: successMessage,
     });
-  } catch (error) {
-    console.error('Error en send-otp:', error);
+  } catch (error: unknown) {
+    console.error("Error general en send-otp:", error);
     return NextResponse.json(
-      { success: false, error: 'Error interno del servidor' },
+      {
+        success: false,
+        error: "Error interno del servidor al procesar la solicitud",
+      },
       { status: 500 }
     );
   }

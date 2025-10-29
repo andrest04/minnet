@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Building2, User, Briefcase, Clock, XCircle, Loader2 } from 'lucide-react';
+import { Building2, User, Briefcase, Clock, XCircle, Loader2, BarChart3 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -162,14 +162,21 @@ export default function EmpresaPage() {
               Métricas estratégicas de las comunidades asociadas
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-muted-foreground">
-              Esta sección mostrará los indicadores estratégicos de las comunidades asociadas a
-              tus proyectos asignados.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Por ahora, el sistema está en fase de recolección de datos.
-            </p>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="rounded-full bg-muted p-4 mb-4">
+                <BarChart3 className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-base font-semibold text-foreground mb-2">
+                No hay indicadores disponibles
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Esta sección mostrará los indicadores estratégicos de las comunidades asociadas a tus proyectos asignados.
+              </p>
+              <p className="text-xs text-muted-foreground mt-2 bg-blue-50 px-3 py-2 rounded-md border border-blue-100">
+                El sistema está en fase de recolección de datos.
+              </p>
+            </div>
           </CardContent>
         </Card>
       )}

@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Building2, Clock, CheckCircle2, Loader2 } from 'lucide-react';
+import { Users, Building2, Clock, CheckCircle2, Loader2, Search } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { toast } from 'sonner';
 
@@ -33,6 +34,7 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+  const [searchQuery, setSearchQuery] = useState('');
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
@@ -110,9 +112,18 @@ export default function AdminPage() {
     }
   };
 
-  const filteredCompanies = companies.filter(
-    (c) => filter === 'all' || c.validation_status === filter
-  );
+  const filteredCompanies = companies
+    .filter((c) => filter === 'all' || c.validation_status === filter)
+    .filter((c) => {
+      if (!searchQuery.trim()) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        c.full_name.toLowerCase().includes(query) ||
+        c.company_name.toLowerCase().includes(query) ||
+        c.email.toLowerCase().includes(query) ||
+        c.position.toLowerCase().includes(query)
+      );
+    });
 
   if (isLoading) {
     return (
@@ -159,20 +170,41 @@ export default function AdminPage() {
 
       <Card className="border-border">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Gestión de Empresas</CardTitle>
-            <div className="flex gap-2">
-              {(['all', 'pending', 'approved', 'rejected'] as const).map((f) => (
-                <Button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  variant={filter === f ? 'default' : 'outline'}
-                  size="sm"
-                >
-                  {f === 'all' ? 'Todas' : f === 'pending' ? 'Pendientes' : f === 'approved' ? 'Aprobadas' : 'Rechazadas'}
-                </Button>
-              ))}
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <CardTitle>Gestión de Empresas</CardTitle>
+              <div className="flex gap-2">
+                {(['all', 'pending', 'approved', 'rejected'] as const).map((f) => (
+                  <Button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    variant={filter === f ? 'default' : 'outline'}
+                    size="sm"
+                  >
+                    {f === 'all' ? 'Todas' : f === 'pending' ? 'Pendientes' : f === 'approved' ? 'Aprobadas' : 'Rechazadas'}
+                  </Button>
+                ))}
+              </div>
             </div>
+
+            {/* Barra de búsqueda */}
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Buscar por nombre, empresa, email o cargo..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {/* Contador de resultados */}
+            {searchQuery && (
+              <p className="text-sm text-muted-foreground">
+                {filteredCompanies.length} resultado{filteredCompanies.length !== 1 ? 's' : ''} encontrado{filteredCompanies.length !== 1 ? 's' : ''}
+              </p>
+            )}
           </div>
         </CardHeader>
 

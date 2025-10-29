@@ -19,6 +19,7 @@ function VerifyOTPContent() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutos en segundos
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -26,6 +27,23 @@ function VerifyOTPContent() {
       router.push('/login');
     }
   }, [identifier, type, router]);
+
+  // Countdown timer
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+
+    const intervalId = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 1) {
+          clearInterval(intervalId);
+          return 0;
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [timeLeft]);
 
   useEffect(() => {
     // Auto-focus en el primer input
@@ -77,11 +95,23 @@ function VerifyOTPContent() {
     }
   };
 
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const handleVerify = async (codeToVerify?: string) => {
     const otpCode = codeToVerify || code.join('');
 
     if (!validateOTP(otpCode)) {
       setError('Por favor, completa los 6 dígitos');
+      return;
+    }
+
+    if (timeLeft === 0) {
+      setError('El código ha expirado. Por favor, solicita uno nuevo.');
+      toast.error('El código ha expirado');
       return;
     }
 
@@ -113,11 +143,8 @@ function VerifyOTPContent() {
       }
 
       // Si el usuario existe, redirigir al dashboard según su tipo
+      // La sesión se gestiona automáticamente con cookies HTTP-only de Supabase
       if (data.user_exists) {
-        // Aquí se guardaría la sesión en localStorage o cookies
-        localStorage.setItem('user_id', data.user_id);
-        localStorage.setItem('user_type', data.user_type);
-
         // Redirigir según el tipo de usuario
         if (data.user_type === 'admin') {
           router.push('/admin');
@@ -162,8 +189,9 @@ function VerifyOTPContent() {
         return;
       }
 
-      // Limpiar código y mostrar mensaje de éxito
+      // Limpiar código, reiniciar timer y mostrar mensaje de éxito
       setCode(['', '', '', '', '', '']);
+      setTimeLeft(300); // Reiniciar a 5 minutos
       inputRefs.current[0]?.focus();
       toast.success('Código reenviado correctamente');
     } catch (err) {
@@ -196,6 +224,25 @@ function VerifyOTPContent() {
               {type === 'email' ? 'tu email' : 'tu teléfono'}
             </span>
           </CardDescription>
+
+          {/* Timer visual */}
+          <div className="flex items-center justify-center gap-2 pt-2">
+            <div className={`text-sm font-medium ${
+              timeLeft === 0
+                ? 'text-destructive'
+                : timeLeft < 60
+                ? 'text-warning'
+                : 'text-muted-foreground'
+            }`}>
+              {timeLeft === 0 ? (
+                'Código expirado'
+              ) : (
+                <>
+                  Tiempo restante: <span className="font-mono">{formatTime(timeLeft)}</span>
+                </>
+              )}
+            </div>
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-6">

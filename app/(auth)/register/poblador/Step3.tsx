@@ -71,9 +71,14 @@ export const Step3 = ({
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-foreground mb-3">
-          ¿Qué temas te interesan más?
-        </label>
+        <div className="flex items-center justify-between mb-3">
+          <label className="block text-sm font-medium text-foreground">
+            ¿Qué temas te interesan más?
+          </label>
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md">
+            {formData.topics_interest?.length || 0} seleccionado{(formData.topics_interest?.length || 0) !== 1 ? 's' : ''}
+          </span>
+        </div>
         <div className="flex flex-wrap gap-2">
           {TOPICS_OF_INTEREST.map((topic) => (
             <button
@@ -107,9 +112,14 @@ export const Step3 = ({
       />
 
       <div>
-        <label className="block text-sm font-medium text-foreground mb-3">
-          ¿En qué actividades estarías dispuesto a participar?
-        </label>
+        <div className="flex items-center justify-between mb-3">
+          <label className="block text-sm font-medium text-foreground">
+            ¿En qué actividades estarías dispuesto a participar?
+          </label>
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md">
+            {formData.participation_willingness?.length || 0} seleccionada{(formData.participation_willingness?.length || 0) !== 1 ? 's' : ''}
+          </span>
+        </div>
         <div className="space-y-2">
           {PARTICIPATION_OPTIONS.map((option) => (
             <button

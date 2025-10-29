@@ -45,6 +45,15 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (!response.ok) {
+        // Manejo específico para rate limiting
+        if (response.status === 429) {
+          const errorMsg = 'Demasiados intentos. Por favor, espera un minuto antes de intentar nuevamente.'
+          setError(errorMsg)
+          toast.error(errorMsg, { duration: 5000 })
+          setIsLoading(false)
+          return
+        }
+
         const errorMsg = data.error || 'Error al enviar código de verificación'
         setError(errorMsg)
         toast.error(errorMsg)
