@@ -34,11 +34,8 @@ export default function AdminAuthPage() {
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
 
     const type = identifierType(loginIdentifier);
     if (type === "invalid") {
@@ -91,7 +88,6 @@ export default function AdminAuthPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
 
     // Validaciones
     const type = identifierType(registerIdentifier);

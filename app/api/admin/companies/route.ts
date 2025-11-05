@@ -63,7 +63,15 @@ export async function GET() {
     console.log("Raw companies data from Supabase:", JSON.stringify(companies, null, 2));
 
     // Transform the data to flatten the profiles relationship
-    const transformedCompanies = companies?.map((company: any) => {
+    const transformedCompanies = companies?.map((company: {
+      id: string;
+      company_name: string;
+      responsible_area: string;
+      position: string;
+      validation_status: string | null;
+      created_at: string | null;
+      profiles?: { email?: string | null; phone?: string | null } | null;
+    }) => {
       console.log("Processing company:", company);
       return {
         id: company.id,
