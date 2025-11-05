@@ -33,6 +33,7 @@ export async function GET() {
     }
 
     // Query companies table directly and join with profiles for email
+    // Note: Using companies_id_fkey as the foreign key relationship name
     const { data: companies, error } = await supabase
       .from("companies")
       .select(`
@@ -42,7 +43,7 @@ export async function GET() {
         position,
         validation_status,
         created_at,
-        profiles!inner (
+        profiles:companies_id_fkey (
           email,
           phone
         )
@@ -57,18 +58,26 @@ export async function GET() {
       );
     }
 
+    // Log the raw data for debugging
+    console.log("Raw companies data from Supabase:", JSON.stringify(companies, null, 2));
+
     // Transform the data to flatten the profiles relationship
-    const transformedCompanies = companies?.map((company: any) => ({
-      id: company.id,
-      email: company.profiles?.email || "",
-      phone: company.profiles?.phone || "",
-      created_at: company.created_at,
-      company_name: company.company_name || "",
-      responsible_area: company.responsible_area || "",
-      position: company.position || "",
-      validation_status: company.validation_status || "pending",
-      full_name: company.company_name || company.profiles?.email || "Sin nombre",
-    }));
+    const transformedCompanies = companies?.map((company: any) => {
+      console.log("Processing company:", company);
+      return {
+        id: company.id,
+        email: company.profiles?.email || "",
+        phone: company.profiles?.phone || "",
+        created_at: company.created_at,
+        company_name: company.company_name || "",
+        responsible_area: company.responsible_area || "",
+        position: company.position || "",
+        validation_status: company.validation_status || "pending",
+        full_name: company.company_name || company.profiles?.email || "Sin nombre",
+      };
+    });
+
+    console.log("Transformed companies:", JSON.stringify(transformedCompanies, null, 2));
 
     return NextResponse.json({
       success: true,
