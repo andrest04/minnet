@@ -32,11 +32,21 @@ export async function GET() {
       );
     }
 
+    // Join profiles with companies table to get complete company data
     const { data: companies, error } = await supabase
       .from("profiles")
-      .select(
-        "id, responsible_area, company_name, position, validation_status, created_at, email"
-      )
+      .select(`
+        id,
+        email,
+        phone,
+        created_at,
+        companies (
+          company_name,
+          responsible_area,
+          position,
+          validation_status
+        )
+      `)
       .eq("user_type", "company")
       .order("created_at", { ascending: false });
 
@@ -48,9 +58,22 @@ export async function GET() {
       );
     }
 
+    // Transform the data to flatten the companies relationship
+    const transformedCompanies = companies?.map((profile: any) => ({
+      id: profile.id,
+      email: profile.email,
+      phone: profile.phone,
+      created_at: profile.created_at,
+      company_name: profile.companies?.company_name || "",
+      responsible_area: profile.companies?.responsible_area || "",
+      position: profile.companies?.position || "",
+      validation_status: profile.companies?.validation_status || "pending",
+      full_name: profile.companies?.company_name || profile.email || "Sin nombre",
+    }));
+
     return NextResponse.json({
       success: true,
-      data: companies,
+      data: transformedCompanies || [],
     });
   } catch (error) {
     console.error("Error en GET /api/admin/companies:", error);
@@ -108,14 +131,14 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    // Update validation_status in the companies table (not profiles)
     const { error } = await supabase
-      .from("profiles")
+      .from("companies")
       .update({
         validation_status,
         updated_at: new Date().toISOString(),
-      } as never)
-      .eq("id", company_id)
-      .eq("user_type", "company");
+      })
+      .eq("id", company_id);
 
     if (error) {
       console.error("Error al actualizar empresa:", error);
