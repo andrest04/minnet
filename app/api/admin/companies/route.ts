@@ -25,7 +25,7 @@ export async function GET() {
       .eq("id", user.id)
       .single<{ user_type: string }>();
 
-    if (profile?.user_type !== "admin") {
+    if (profile?.user_type !== "administrator") {
       return NextResponse.json(
         { success: false, error: "No autorizado. Solo administradores." },
         { status: 403 }
@@ -37,7 +37,7 @@ export async function GET() {
       .select(
         "id, responsible_area, company_name, position, validation_status, created_at, email"
       )
-      .eq("user_type", "empresa")
+      .eq("user_type", "company")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -85,7 +85,7 @@ export async function PATCH(request: NextRequest) {
       .eq("id", user.id)
       .single<{ user_type: string }>();
 
-    if (profile?.user_type !== "admin") {
+    if (profile?.user_type !== "administrator") {
       return NextResponse.json(
         { success: false, error: "No autorizado. Solo administradores." },
         { status: 403 }
@@ -115,7 +115,7 @@ export async function PATCH(request: NextRequest) {
         updated_at: new Date().toISOString(),
       } as never)
       .eq("id", company_id)
-      .eq("user_type", "empresa");
+      .eq("user_type", "company");
 
     if (error) {
       console.error("Error al actualizar empresa:", error);

@@ -154,9 +154,9 @@ function VerifyOTPContent() {
       // La sesión se gestiona automáticamente con cookies HTTP-only de Supabase
       if (data.user_exists) {
         // Redirigir según el tipo de usuario
-        if (data.user_type === "admin") {
+        if (data.user_type === "administrator") {
           router.push("/admin");
-        } else if (data.user_type === "empresa") {
+        } else if (data.user_type === "company") {
           router.push("/empresa");
         } else {
           router.push("/poblador");

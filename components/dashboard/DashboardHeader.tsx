@@ -9,16 +9,16 @@ import { createClient } from '@/utils/supabase/client'
 import { toast } from 'sonner'
 
 const USER_TYPE_LABELS = {
-  poblador: 'Poblador',
-  empresa: 'Empresa',
-  admin: 'Administrador',
+  resident: 'Poblador',
+  company: 'Empresa',
+  administrator: 'Administrador',
 } as const
 
 export function DashboardHeader() {
   const router = useRouter()
   const [userInfo, setUserInfo] = useState<{
     name: string
-    type: 'poblador' | 'empresa' | 'admin'
+    type: 'resident' | 'company' | 'administrator'
   } | null>(null)
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export function DashboardHeader() {
         if (profile) {
           setUserInfo({
             name: profile.full_name || 'Usuario',
-            type: profile.user_type as 'poblador' | 'empresa' | 'admin',
+            type: profile.user_type as 'resident' | 'company' | 'administrator',
           })
         }
       } catch (error) {

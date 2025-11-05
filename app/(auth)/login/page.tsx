@@ -72,9 +72,9 @@ export default function LoginPage() {
       toast.success("Sesión iniciada correctamente");
 
       const redirectMap: Record<string, string> = {
-        poblador: "/poblador",
-        empresa: "/empresa",
-        admin: "/admin",
+        resident: "/poblador",
+        company: "/empresa",
+        administrator: "/admin",
       };
 
       router.push(redirectMap[data.user_type] || "/poblador");

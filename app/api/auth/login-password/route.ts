@@ -65,13 +65,24 @@ export async function POST(request: NextRequest) {
       .from("profiles")
       .select("user_type")
       .eq("id", data.user.id)
-      .single<{ user_type: string }>();
+      .maybeSingle<{ user_type: string }>();
 
-    if (profileError || !profile) {
+    if (profileError) {
       console.error("Error al obtener perfil:", profileError);
       return NextResponse.json(
         { success: false, error: "Error al obtener datos del perfil" },
         { status: 500 }
+      );
+    }
+
+    if (!profile) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Tu cuenta no tiene un perfil completo. Por favor, completa el proceso de registro.",
+          needsRegistration: true,
+        },
+        { status: 404 }
       );
     }
 

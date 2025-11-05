@@ -22,7 +22,7 @@ export async function GET() {
       .eq('id', user.id)
       .single<{ user_type: string }>();
 
-    if (profile?.user_type !== 'admin') {
+    if (profile?.user_type !== 'administrator') {
       return NextResponse.json(
         { success: false, error: 'No autorizado. Solo administradores.' },
         { status: 403 }
@@ -40,13 +40,13 @@ export async function GET() {
     };
 
     const stats = {
-      total_pobladores: profiles?.filter((p) => p.user_type === 'poblador').length || 0,
-      total_empresas: profiles?.filter((p) => p.user_type === 'empresa').length || 0,
+      total_pobladores: profiles?.filter((p) => p.user_type === 'resident').length || 0,
+      total_empresas: profiles?.filter((p) => p.user_type === 'company').length || 0,
       empresas_pendientes:
-        profiles?.filter((p) => p.user_type === 'empresa' && p.validation_status === 'pending')
+        profiles?.filter((p) => p.user_type === 'company' && p.validation_status === 'pending')
           .length || 0,
       empresas_aprobadas:
-        profiles?.filter((p) => p.user_type === 'empresa' && p.validation_status === 'approved')
+        profiles?.filter((p) => p.user_type === 'company' && p.validation_status === 'approved')
           .length || 0,
     };
 
