@@ -376,34 +376,6 @@ export async function POST(request: NextRequest) {
         }
       }
     } else if (mappedUserType === "administrator") {
-      // SECURITY: Verificar clave secreta para crear administradores
-      const adminSecret = body.admin_secret;
-      const expectedSecret = process.env.ADMIN_REGISTRATION_SECRET;
-
-      if (!expectedSecret) {
-        console.error(
-          "ADMIN_REGISTRATION_SECRET no está configurado en variables de entorno"
-        );
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Sistema no configurado para registro de administradores",
-          },
-          { status: 500 }
-        );
-      }
-
-      if (adminSecret !== expectedSecret) {
-        console.warn("Intento de registro de admin con clave incorrecta");
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Clave secreta incorrecta. No autorizado para crear administradores.",
-          },
-          { status: 403 }
-        );
-      }
-
       const adminPayload = {
         id: userId,
         full_name: profileData.full_name || profileData.email || "Administrador",
