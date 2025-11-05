@@ -10,6 +10,10 @@ import {
   XCircle,
   Loader2,
   BarChart3,
+  Mail,
+  Phone,
+  Target,
+  Calendar,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import {
@@ -24,11 +28,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Profile {
   id: string;
-  full_name: string;
   company_name: string;
+  responsible_area: string;
   position: string;
   validation_status: "pending" | "approved" | "rejected";
-  assigned_projects: string[];
+  use_objective?: string;
+  consultation_frequency?: string;
+  email?: string;
+  phone?: string;
   user_type: string;
 }
 
@@ -52,9 +59,14 @@ export default function EmpresaPage() {
       }
 
       if (data.success && data.profile) {
-        // Verify user is empresa
+        // Verify user is company (API returns 'empresa' for backward compatibility)
         if (data.profile.user_type !== "empresa") {
-          router.push(`/${data.profile.user_type}`);
+          // Redirect based on user type
+          const routeMap: Record<string, string> = {
+            poblador: "/poblador",
+            admin: "/admin",
+          };
+          router.push(routeMap[data.profile.user_type] || "/");
           return;
         }
 
@@ -146,24 +158,84 @@ export default function EmpresaPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
+              <Building2 className="h-4 w-4 text-muted-foreground" />
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Nombre</p>
+                <p className="text-sm text-muted-foreground">Empresa</p>
                 <p className="font-semibold text-foreground">
-                  {profile?.full_name}
+                  {profile?.company_name}
                 </p>
               </div>
             </div>
+
             <div className="flex items-center gap-2">
               <Briefcase className="h-4 w-4 text-muted-foreground" />
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">Cargo</p>
                 <p className="font-semibold text-foreground">
-                  {profile?.position}
+                  {profile?.position || "No especificado"}
                 </p>
               </div>
             </div>
-            <div>
+
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground">Área Responsable</p>
+                <p className="font-semibold text-foreground">
+                  {profile?.responsible_area || "No especificado"}
+                </p>
+              </div>
+            </div>
+
+            {profile?.email && (
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="font-semibold text-foreground">
+                    {profile.email}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {profile?.phone && (
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">Teléfono</p>
+                  <p className="font-semibold text-foreground">
+                    {profile.phone}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {profile?.use_objective && (
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-muted-foreground" />
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">Objetivo de Uso</p>
+                  <p className="font-semibold text-foreground">
+                    {profile.use_objective}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {profile?.consultation_frequency && (
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">Frecuencia de Consulta</p>
+                  <p className="font-semibold text-foreground">
+                    {profile.consultation_frequency}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="md:col-span-2">
               <p className="text-sm text-muted-foreground mb-2">
                 Estado de la Cuenta
               </p>
