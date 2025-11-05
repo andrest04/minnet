@@ -5,14 +5,11 @@
  */
 
 const requiredEnvVars = [
-  'NEXT_PUBLIC_SUPABASE_URL',
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
 ] as const;
 
-const optionalEnvVars = [
-  'NEXT_PUBLIC_VERCEL_ENV',
-  'VERCEL_URL',
-] as const;
+const optionalEnvVars = ["NEXT_PUBLIC_VERCEL_ENV", "VERCEL_URL"] as const;
 
 /**
  * Validates that all required environment variables are present
@@ -39,21 +36,25 @@ export function validateEnv(): void {
   // Throw error if required variables are missing
   if (missing.length > 0) {
     throw new Error(
-      `❌ Missing required environment variables:\n${missing.map(key => `  - ${key}`).join('\n')}\n\n` +
-      `Please check your .env.local file or environment configuration.`
+      `❌ Missing required environment variables:\n${missing
+        .map((key) => `  - ${key}`)
+        .join("\n")}\n\n` +
+        `Please check your .env.local file or environment configuration.`
     );
   }
 
   // Log warnings for optional variables (only in development)
-  if (warnings.length > 0 && process.env.NODE_ENV === 'development') {
+  if (warnings.length > 0 && process.env.NODE_ENV === "development") {
     console.warn(
-      `⚠️  Optional environment variables not set:\n${warnings.map(key => `  - ${key}`).join('\n')}`
+      `⚠️  Optional environment variables not set:\n${warnings
+        .map((key) => `  - ${key}`)
+        .join("\n")}`
     );
   }
 
   // Log success in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('✅ All required environment variables are set');
+  if (process.env.NODE_ENV === "development") {
+    // Environment variables validation completed successfully
   }
 }
 
@@ -63,7 +64,7 @@ export function validateEnv(): void {
  * @returns The value of the environment variable
  * @throws Error if the environment variable is not set
  */
-export function getEnvVar(key: typeof requiredEnvVars[number]): string {
+export function getEnvVar(key: (typeof requiredEnvVars)[number]): string {
   const value = process.env[key];
 
   if (!value) {
@@ -80,8 +81,8 @@ export function getEnvVar(key: typeof requiredEnvVars[number]): string {
  * @returns The value of the environment variable or the default
  */
 export function getOptionalEnvVar(
-  key: typeof optionalEnvVars[number],
-  defaultValue: string = ''
+  key: (typeof optionalEnvVars)[number],
+  defaultValue: string = ""
 ): string {
   return process.env[key] || defaultValue;
 }

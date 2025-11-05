@@ -130,8 +130,12 @@ export const EDUCATION_LEVELS = [
 ];
 
 /**
- * Profesiones u oficios
+ * Opciones de género
  */
+export const GENDER_OPTIONS = [
+  { value: "masculino", label: "Masculino" },
+  { value: "femenino", label: "Femenino" },
+];
 export const PROFESSIONS = [
   { value: "agricultor", label: "Agricultor/a" },
   { value: "ganadero", label: "Ganadero/a" },
@@ -189,6 +193,30 @@ export const COMPANY_POSITIONS = [
 ];
 
 /**
+ * Áreas encargadas de empresa
+ */
+export const COMPANY_AREAS = [
+  {
+    value: "gerencia_general_proyecto",
+    label: "Gerencia General del Proyecto",
+  },
+  {
+    value: "gerencia_relaciones_sociales",
+    label: "Gerencia de Relaciones Sociales",
+  },
+];
+
+/**
+ * Niveles de parentesco para junta directiva
+ */
+export const JUNTA_RELATIONSHIPS = [
+  { value: "padres", label: "Padres" },
+  { value: "hijos", label: "Hijos" },
+  { value: "amigo", label: "Amigo" },
+  { value: "esposo_conyugue", label: "Esposo/a o Conyugue" },
+];
+
+/**
  * Objetivos de uso (empresa)
  */
 export const USE_OBJECTIVES = [
@@ -208,9 +236,65 @@ export const CONSULTATION_FREQUENCIES = [
 ];
 
 /**
- * Formatos de exportación
+ * Requisitos mínimos de contraseña
  */
-export const EXPORT_FORMATS = [
-  { value: "pdf", label: "PDF" },
-  { value: "csv", label: "CSV" },
-];
+export const PASSWORD_MIN_LENGTH = 8;
+export const PASSWORD_MAX_LENGTH = 128;
+
+/**
+ * Valida requisitos de contraseña
+ */
+export const validatePassword = (
+  password: string
+): {
+  isValid: boolean;
+  errors: string[];
+  strength: "weak" | "medium" | "strong";
+} => {
+  const errors: string[] = [];
+
+  if (!password) {
+    errors.push("La contraseña es requerida");
+    return { isValid: false, errors, strength: "weak" };
+  }
+
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    errors.push(`Debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres`);
+  }
+
+  if (password.length > PASSWORD_MAX_LENGTH) {
+    errors.push(`No puede exceder ${PASSWORD_MAX_LENGTH} caracteres`);
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    errors.push("Debe incluir al menos una letra mayúscula");
+  }
+
+  if (!/[a-z]/.test(password)) {
+    errors.push("Debe incluir al menos una letra minúscula");
+  }
+
+  if (!/[0-9]/.test(password)) {
+    errors.push("Debe incluir al menos un número");
+  }
+
+  let strength: "weak" | "medium" | "strong" = "weak";
+  if (errors.length === 0) {
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+    const isLong = password.length >= 12;
+
+    if (hasSpecial && isLong) {
+      strength = "strong";
+    } else if (hasSpecial || isLong) {
+      strength = "medium";
+    } else {
+      strength = "medium";
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    strength,
+  };
+};
