@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { StatCard } from '@/components/dashboard/StatCard';
-import { SetPasswordCard } from '@/components/auth/SetPasswordCard';
 import { toast } from 'sonner';
 
 interface Company {
@@ -168,8 +167,6 @@ export default function AdminPage() {
           />
         </div>
       )}
-
-      <SetPasswordCard />
 
       <Card className="border-border">
         <CardHeader>
