@@ -10,7 +10,13 @@ import {
   Loader2,
   Calendar,
 } from "lucide-react";
-import { createClient } from "@/utils/supabase/client";
+import { useAuthenticatedUser } from "@/lib/hooks/useAuthenticatedUser";
+import {
+  getLabel,
+  EDUCATION_LABELS,
+  AGE_RANGE_LABELS,
+  TOPIC_LABELS,
+} from "@/lib/utils/field-labels";
 import {
   Card,
   CardContent,
@@ -45,11 +51,11 @@ interface Region {
 
 export default function PobladorPage() {
   const router = useRouter();
+  const { checkAuth } = useAuthenticatedUser();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [region, setRegion] = useState<Region | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClient();
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -83,25 +89,11 @@ export default function PobladorPage() {
   }, [router]);
 
   const checkAuthAndLoadProfile = useCallback(async () => {
-    try {
-      // Check authentication using Supabase session
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        router.push("/login");
-        return;
-      }
-
-      // Fetch profile data using API (now secured with auth)
+    const user = await checkAuth();
+    if (user) {
       await fetchProfile();
-    } catch (error) {
-      console.error("Error al verificar autenticación:", error);
-      router.push("/login");
     }
-  }, [router, supabase, fetchProfile]);
+  }, [checkAuth, fetchProfile]);
 
   useEffect(() => {
     checkAuthAndLoadProfile();
@@ -166,19 +158,7 @@ export default function PobladorPage() {
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">Educación</p>
                 <p className="font-semibold text-foreground">
-                  {profile?.education_level === "primaria"
-                    ? "Primaria"
-                    : profile?.education_level === "secundaria"
-                    ? "Secundaria"
-                    : profile?.education_level === "tecnico"
-                    ? "Técnico"
-                    : profile?.education_level === "universitario"
-                    ? "Universitario"
-                    : profile?.education_level === "posgrado"
-                    ? "Posgrado"
-                    : profile?.education_level === "ninguno"
-                    ? "Ninguno"
-                    : profile?.education_level || "N/A"}
+                  {getLabel(EDUCATION_LABELS, profile?.education_level)}
                 </p>
               </div>
             </div>
@@ -194,19 +174,7 @@ export default function PobladorPage() {
             <div>
               <p className="text-sm text-muted-foreground">Rango de Edad</p>
               <p className="font-semibold text-foreground">
-                {profile?.age_range === "18-25"
-                  ? "18-25 años"
-                  : profile?.age_range === "26-35"
-                  ? "26-35 años"
-                  : profile?.age_range === "36-45"
-                  ? "36-45 años"
-                  : profile?.age_range === "46-55"
-                  ? "46-55 años"
-                  : profile?.age_range === "56-65"
-                  ? "56-65 años"
-                  : profile?.age_range === "65+"
-                  ? "65+ años"
-                  : profile?.age_range || "N/A"}
+                {getLabel(AGE_RANGE_LABELS, profile?.age_range)}
               </p>
             </div>
           </CardContent>
@@ -222,26 +190,15 @@ export default function PobladorPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {profile?.topics_interest?.map((topic) => {
-              const topicLabels: Record<string, string> = {
-                empleo: "Empleo",
-                salud: "Salud",
-                educacion: "Educación",
-                ambiente: "Medio Ambiente",
-                infraestructura: "Infraestructura",
-                desarrollo: "Desarrollo Comunitario",
-                seguridad: "Seguridad",
-              };
-              return (
-                <Badge
-                  key={topic}
-                  variant="secondary"
-                  className="bg-white/20 text-white border-white/30 hover:bg-white/30"
-                >
-                  {topicLabels[topic] || topic}
-                </Badge>
-              );
-            })}
+            {profile?.topics_interest?.map((topic) => (
+              <Badge
+                key={topic}
+                variant="secondary"
+                className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+              >
+                {getLabel(TOPIC_LABELS, topic, topic)}
+              </Badge>
+            ))}
           </div>
         </CardContent>
       </Card>

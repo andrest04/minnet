@@ -15,7 +15,15 @@ import {
   Target,
   Calendar,
 } from "lucide-react";
-import { createClient } from "@/utils/supabase/client";
+import { useAuthenticatedUser } from "@/lib/hooks/useAuthenticatedUser";
+import {
+  getLabel,
+  POSITION_LABELS,
+  RESPONSIBLE_AREA_LABELS,
+  USE_OBJECTIVE_LABELS,
+  CONSULTATION_FREQUENCY_LABELS,
+  VALIDATION_STATUS_LABELS,
+} from "@/lib/utils/field-labels";
 import {
   Card,
   CardContent,
@@ -41,9 +49,9 @@ interface Profile {
 
 export default function EmpresaPage() {
   const router = useRouter();
+  const { checkAuth } = useAuthenticatedUser();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClient();
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -80,25 +88,11 @@ export default function EmpresaPage() {
   }, [router]);
 
   const checkAuthAndLoadProfile = useCallback(async () => {
-    try {
-      // Check authentication using Supabase session
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        router.push("/login");
-        return;
-      }
-
-      // Fetch profile data
+    const user = await checkAuth();
+    if (user) {
       await fetchProfile();
-    } catch (error) {
-      console.error("Error al verificar autenticación:", error);
-      router.push("/login");
     }
-  }, [router, supabase, fetchProfile]);
+  }, [checkAuth, fetchProfile]);
 
   useEffect(() => {
     checkAuthAndLoadProfile();

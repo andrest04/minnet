@@ -39,7 +39,9 @@ export const GENERIC_EMAIL_DOMAINS = [
  * Validación de email corporativo (no dominios genéricos)
  */
 export const validateCorporateEmail = (email: string): boolean => {
-  return validateEmail(email);
+  if (!validateEmail(email)) return false;
+  const domain = email.split("@")[1]?.toLowerCase();
+  return !GENERIC_EMAIL_DOMAINS.includes(domain);
 };
 
 /**

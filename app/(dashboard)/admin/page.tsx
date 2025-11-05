@@ -2,13 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Building2, Clock, CheckCircle2, Loader2, Search } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
-import { Button } from '@/components/ui/button';
+import { Users, Building2, Clock, CheckCircle2, Loader2 } from 'lucide-react';
+import { useAuthenticatedUser } from '@/lib/hooks/useAuthenticatedUser';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { StatCard } from '@/components/dashboard/StatCard';
+import CompanyFilters from '@/components/admin/CompanyFilters';
+import CompanyCard from '@/components/admin/CompanyCard';
 import { toast } from 'sonner';
 
 interface Company {
@@ -30,12 +29,12 @@ interface Stats {
 
 export default function AdminPage() {
   const router = useRouter();
+  const { checkAuth } = useAuthenticatedUser();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [searchQuery, setSearchQuery] = useState('');
-  const supabase = createClient();
 
   const fetchData = useCallback(async () => {
     try {
@@ -68,23 +67,11 @@ export default function AdminPage() {
   }, [router]);
 
   const checkAuthAndLoadData = useCallback(async () => {
-    try {
-      // Check authentication using Supabase session
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        router.push('/login');
-        return;
-      }
-
-      // Verify user is admin by trying to fetch admin data
-      // If not admin, the API will return 403
+    const user = await checkAuth();
+    if (user) {
       await fetchData();
-    } catch (error) {
-      console.error('Error al verificar autenticación:', error);
-      router.push('/login');
     }
-  }, [router, supabase, fetchData]);
+  }, [checkAuth, fetchData]);
 
   useEffect(() => {
     checkAuthAndLoadData();
@@ -170,42 +157,13 @@ export default function AdminPage() {
 
       <Card className="border-border">
         <CardHeader>
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <CardTitle>Gestión de Empresas</CardTitle>
-              <div className="flex gap-2">
-                {(['all', 'pending', 'approved', 'rejected'] as const).map((f) => (
-                  <Button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    variant={filter === f ? 'default' : 'outline'}
-                    size="sm"
-                  >
-                    {f === 'all' ? 'Todas' : f === 'pending' ? 'Pendientes' : f === 'approved' ? 'Aprobadas' : 'Rechazadas'}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {/* Barra de búsqueda */}
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Buscar por nombre, empresa, email o cargo..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            {/* Contador de resultados */}
-            {searchQuery && (
-              <p className="text-sm text-muted-foreground">
-                {filteredCompanies.length} resultado{filteredCompanies.length !== 1 ? 's' : ''} encontrado{filteredCompanies.length !== 1 ? 's' : ''}
-              </p>
-            )}
-          </div>
+          <CompanyFilters
+            filter={filter}
+            searchQuery={searchQuery}
+            resultCount={filteredCompanies.length}
+            onFilterChange={setFilter}
+            onSearchChange={setSearchQuery}
+          />
         </CardHeader>
 
         <CardContent>
@@ -214,65 +172,11 @@ export default function AdminPage() {
               <p className="text-center text-muted-foreground py-8">No hay empresas en esta categoría</p>
             ) : (
               filteredCompanies.map((company) => (
-                <div key={company.id} className="border border-border rounded-lg p-4 hover:bg-accent/5 transition-colors">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-1">
-                      <h3 className="font-semibold text-foreground">{company.full_name}</h3>
-                      <p className="text-sm text-muted-foreground">{company.company_name}</p>
-                      <p className="text-sm text-muted-foreground">{company.position}</p>
-                      <p className="text-sm text-muted-foreground">{company.email}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Registrado: {new Date(company.created_at).toLocaleDateString('es-PE')}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-3">
-                      <Badge
-                        variant={
-                          company.validation_status === 'pending'
-                            ? 'secondary'
-                            : company.validation_status === 'approved'
-                            ? 'default'
-                            : 'destructive'
-                        }
-                        className={
-                          company.validation_status === 'pending'
-                            ? 'bg-amber-100 text-amber-900 hover:bg-amber-200'
-                            : ''
-                        }
-                      >
-                        {company.validation_status === 'pending'
-                          ? 'Pendiente'
-                          : company.validation_status === 'approved'
-                          ? 'Aprobada'
-                          : 'Rechazada'}
-                      </Badge>
-
-                      {company.validation_status === 'pending' && (
-                        <div className="flex gap-2">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleUpdateStatus(company.id, 'approved')}
-                          >
-                            Aprobar
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => {
-                              if (confirm(`¿Estás seguro de eliminar la cuenta de ${company.company_name}?\n\nEsta acción eliminará permanentemente:\n- Datos de la empresa\n- Cuenta de usuario\n- Proyectos asignados\n\nEsta acción NO se puede deshacer.`)) {
-                                handleUpdateStatus(company.id, 'rejected');
-                              }
-                            }}
-                          >
-                            Eliminar Cuenta
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <CompanyCard
+                  key={company.id}
+                  company={company}
+                  onUpdateStatus={handleUpdateStatus}
+                />
               ))
             )}
           </div>
