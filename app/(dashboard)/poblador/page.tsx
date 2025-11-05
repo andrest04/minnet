@@ -165,8 +165,20 @@ export default function PobladorPage() {
               <GraduationCap className="h-4 w-4 text-muted-foreground" />
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">Educación</p>
-                <p className="font-semibold text-foreground capitalize">
-                  {profile?.education_level || "N/A"}
+                <p className="font-semibold text-foreground">
+                  {profile?.education_level === "primaria"
+                    ? "Primaria"
+                    : profile?.education_level === "secundaria"
+                    ? "Secundaria"
+                    : profile?.education_level === "tecnico"
+                    ? "Técnico"
+                    : profile?.education_level === "universitario"
+                    ? "Universitario"
+                    : profile?.education_level === "posgrado"
+                    ? "Posgrado"
+                    : profile?.education_level === "ninguno"
+                    ? "Ninguno"
+                    : profile?.education_level || "N/A"}
                 </p>
               </div>
             </div>
@@ -182,7 +194,19 @@ export default function PobladorPage() {
             <div>
               <p className="text-sm text-muted-foreground">Rango de Edad</p>
               <p className="font-semibold text-foreground">
-                {profile?.age_range || "N/A"}
+                {profile?.age_range === "18-25"
+                  ? "18-25 años"
+                  : profile?.age_range === "26-35"
+                  ? "26-35 años"
+                  : profile?.age_range === "36-45"
+                  ? "36-45 años"
+                  : profile?.age_range === "46-55"
+                  ? "46-55 años"
+                  : profile?.age_range === "56-65"
+                  ? "56-65 años"
+                  : profile?.age_range === "65+"
+                  ? "65+ años"
+                  : profile?.age_range || "N/A"}
               </p>
             </div>
           </CardContent>
@@ -198,15 +222,26 @@ export default function PobladorPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {profile?.topics_interest?.map((topic) => (
-              <Badge
-                key={topic}
-                variant="secondary"
-                className="bg-white/20 text-white border-white/30 hover:bg-white/30"
-              >
-                {topic}
-              </Badge>
-            ))}
+            {profile?.topics_interest?.map((topic) => {
+              const topicLabels: Record<string, string> = {
+                empleo: "Empleo",
+                salud: "Salud",
+                educacion: "Educación",
+                ambiente: "Medio Ambiente",
+                infraestructura: "Infraestructura",
+                desarrollo: "Desarrollo Comunitario",
+                seguridad: "Seguridad",
+              };
+              return (
+                <Badge
+                  key={topic}
+                  variant="secondary"
+                  className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+                >
+                  {topicLabels[topic] || topic}
+                </Badge>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
