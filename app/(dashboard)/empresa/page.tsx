@@ -17,14 +17,6 @@ import {
 } from "lucide-react";
 import { useAuthenticatedUser } from "@/lib/hooks/useAuthenticatedUser";
 import {
-  getLabel,
-  POSITION_LABELS,
-  RESPONSIBLE_AREA_LABELS,
-  USE_OBJECTIVE_LABELS,
-  CONSULTATION_FREQUENCY_LABELS,
-  VALIDATION_STATUS_LABELS,
-} from "@/lib/utils/field-labels";
-import {
   Card,
   CardContent,
   CardDescription,

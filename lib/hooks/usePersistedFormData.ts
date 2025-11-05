@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-export function usePersistedFormData<T extends Record<string, any>>(
+export function usePersistedFormData<T extends Record<string, unknown>>(
   storageKey: string,
   initialData: T
 ) {
