@@ -1,22 +1,27 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Loader2, AlertCircle, Info } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { validateOTP } from '@/lib/validations';
-import { toast } from 'sonner';
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { validateOTP } from "@/lib/validations";
+import { toast } from "sonner";
 
 function VerifyOTPContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const identifier = searchParams.get('identifier');
-  const type = searchParams.get('type');
+  const identifier = searchParams.get("identifier");
+  const type = searchParams.get("type");
 
-  const [code, setCode] = useState(['', '', '', '', '', '']);
-  const [error, setError] = useState('');
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutos en segundos
@@ -24,7 +29,7 @@ function VerifyOTPContent() {
 
   useEffect(() => {
     if (!identifier || !type) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [identifier, type, router]);
 
@@ -57,7 +62,7 @@ function VerifyOTPContent() {
     const newCode = [...code];
     newCode[index] = value;
     setCode(newCode);
-    setError('');
+    setError("");
 
     // Auto-focus en el siguiente input
     if (value && index < 5) {
@@ -65,32 +70,35 @@ function VerifyOTPContent() {
     }
 
     // Auto-submit cuando se completen los 6 dígitos
-    if (newCode.every((digit) => digit !== '') && index === 5) {
-      handleVerify(newCode.join(''));
+    if (newCode.every((digit) => digit !== "") && index === 5) {
+      handleVerify(newCode.join(""));
     }
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
+    if (e.key === "Backspace" && !code[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').slice(0, 6);
+    const pastedData = e.clipboardData.getData("text").slice(0, 6);
 
     if (/^\d+$/.test(pastedData)) {
-      const newCode = pastedData.split('').concat(Array(6).fill('')).slice(0, 6);
+      const newCode = pastedData
+        .split("")
+        .concat(Array(6).fill(""))
+        .slice(0, 6);
       setCode(newCode);
-      setError('');
+      setError("");
 
       // Focus en el último input completado
-      const nextEmptyIndex = newCode.findIndex((digit) => digit === '');
+      const nextEmptyIndex = newCode.findIndex((digit) => digit === "");
       if (nextEmptyIndex !== -1) {
         inputRefs.current[nextEmptyIndex]?.focus();
       } else {
-        handleVerify(newCode.join(''));
+        handleVerify(newCode.join(""));
       }
     }
   };
@@ -98,31 +106,31 @@ function VerifyOTPContent() {
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    return `${minutes}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handleVerify = async (codeToVerify?: string) => {
-    const otpCode = codeToVerify || code.join('');
+    const otpCode = codeToVerify || code.join("");
 
     if (!validateOTP(otpCode)) {
-      setError('Por favor, completa los 6 dígitos');
+      setError("Por favor, completa los 6 dígitos");
       return;
     }
 
     if (timeLeft === 0) {
-      setError('El código ha expirado. Por favor, solicita uno nuevo.');
-      toast.error('El código ha expirado');
+      setError("El código ha expirado. Por favor, solicita uno nuevo.");
+      toast.error("El código ha expirado");
       return;
     }
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
+      const response = await fetch("/api/auth/verify-otp", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           identifier,
@@ -133,11 +141,11 @@ function VerifyOTPContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        const errorMsg = data.error || 'Error al verificar código';
+        const errorMsg = data.error || "Error al verificar código";
         setError(errorMsg);
         toast.error(errorMsg);
         setIsLoading(false);
-        setCode(['', '', '', '', '', '']);
+        setCode(["", "", "", "", "", ""]);
         inputRefs.current[0]?.focus();
         return;
       }
@@ -146,20 +154,22 @@ function VerifyOTPContent() {
       // La sesión se gestiona automáticamente con cookies HTTP-only de Supabase
       if (data.user_exists) {
         // Redirigir según el tipo de usuario
-        if (data.user_type === 'admin') {
-          router.push('/admin');
-        } else if (data.user_type === 'empresa') {
-          router.push('/empresa');
+        if (data.user_type === "admin") {
+          router.push("/admin");
+        } else if (data.user_type === "empresa") {
+          router.push("/empresa");
         } else {
-          router.push('/poblador');
+          router.push("/poblador");
         }
       } else {
         // Si no existe, redirigir al registro
-        router.push(`/register?identifier=${encodeURIComponent(identifier!)}&type=${type}`);
+        router.push(
+          `/register?identifier=${encodeURIComponent(identifier!)}&type=${type}`
+        );
       }
     } catch (err) {
-      console.error('Error al verificar OTP:', err);
-      const errorMsg = 'Error de conexión. Por favor, intenta nuevamente.';
+      console.error("Error al verificar OTP:", err);
+      const errorMsg = "Error de conexión. Por favor, intenta nuevamente.";
       setError(errorMsg);
       toast.error(errorMsg);
       setIsLoading(false);
@@ -168,13 +178,13 @@ function VerifyOTPContent() {
 
   const handleResend = async () => {
     setIsResending(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch('/api/auth/send-otp', {
-        method: 'POST',
+      const response = await fetch("/api/auth/send-otp", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ identifier }),
       });
@@ -182,7 +192,7 @@ function VerifyOTPContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        const errorMsg = data.error || 'Error al reenviar código';
+        const errorMsg = data.error || "Error al reenviar código";
         setError(errorMsg);
         toast.error(errorMsg);
         setIsResending(false);
@@ -190,13 +200,13 @@ function VerifyOTPContent() {
       }
 
       // Limpiar código, reiniciar timer y mostrar mensaje de éxito
-      setCode(['', '', '', '', '', '']);
+      setCode(["", "", "", "", "", ""]);
       setTimeLeft(300); // Reiniciar a 5 minutos
       inputRefs.current[0]?.focus();
-      toast.success('Código reenviado correctamente');
+      toast.success("Código reenviado correctamente");
     } catch (err) {
-      console.error('Error al reenviar OTP:', err);
-      const errorMsg = 'Error de conexión. Por favor, intenta nuevamente.';
+      console.error("Error al reenviar OTP:", err);
+      const errorMsg = "Error de conexión. Por favor, intenta nuevamente.";
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {
@@ -219,26 +229,29 @@ function VerifyOTPContent() {
             Verificar código
           </CardTitle>
           <CardDescription className="text-base">
-            Ingresa el código de 6 dígitos enviado a{' '}
+            Ingresa el código de 6 dígitos enviado a{" "}
             <span className="font-medium text-foreground">
-              {type === 'email' ? 'tu email' : 'tu teléfono'}
+              {type === "email" ? "tu email" : "tu teléfono"}
             </span>
           </CardDescription>
 
           {/* Timer visual */}
           <div className="flex items-center justify-center gap-2 pt-2">
-            <div className={`text-sm font-medium ${
-              timeLeft === 0
-                ? 'text-destructive'
-                : timeLeft < 60
-                ? 'text-warning'
-                : 'text-muted-foreground'
-            }`}>
+            <div
+              className={`text-sm font-medium ${
+                timeLeft === 0
+                  ? "text-destructive"
+                  : timeLeft < 60
+                  ? "text-warning"
+                  : "text-muted-foreground"
+              }`}
+            >
               {timeLeft === 0 ? (
-                'Código expirado'
+                "Código expirado"
               ) : (
                 <>
-                  Tiempo restante: <span className="font-mono">{formatTime(timeLeft)}</span>
+                  Tiempo restante:{" "}
+                  <span className="font-mono">{formatTime(timeLeft)}</span>
                 </>
               )}
             </div>
@@ -263,11 +276,11 @@ function VerifyOTPContent() {
                 disabled={isLoading}
                 className={`w-12 h-14 text-center text-2xl font-bold rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
                   error
-                    ? 'border-destructive'
+                    ? "border-destructive"
                     : digit
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border'
-                } ${isLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    ? "border-primary bg-primary/5"
+                    : "border-border"
+                } ${isLoading ? "opacity-60 cursor-not-allowed" : ""}`}
               />
             ))}
           </div>
@@ -283,7 +296,7 @@ function VerifyOTPContent() {
             className="w-full"
             size="lg"
             onClick={() => handleVerify()}
-            disabled={code.some((digit) => digit === '') || isLoading}
+            disabled={code.some((digit) => digit === "") || isLoading}
           >
             {isLoading ? (
               <>
@@ -291,7 +304,7 @@ function VerifyOTPContent() {
                 Verificando...
               </>
             ) : (
-              'Verificar código'
+              "Verificar código"
             )}
           </Button>
 
@@ -301,19 +314,13 @@ function VerifyOTPContent() {
               disabled={isResending}
               className="text-sm text-primary font-medium hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isResending ? 'Reenviando...' : '¿No recibiste el código? Reenviar'}
+              {isResending
+                ? "Reenviando..."
+                : "¿No recibiste el código? Reenviar"}
             </button>
           </div>
         </CardContent>
       </Card>
-
-      {/* Información adicional */}
-      <Alert className="border-blue-200 bg-blue-50">
-        <Info className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-sm text-blue-800">
-          En modo desarrollo, el código OTP se muestra en la consola del servidor
-        </AlertDescription>
-      </Alert>
     </div>
   );
 }

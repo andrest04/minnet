@@ -62,7 +62,8 @@ export async function proxy(request: NextRequest) {
 
   // Add header for protected routes
   const { pathname } = request.nextUrl;
-  if (pathname.startsWith('/poblador') || pathname.startsWith('/empresa') || pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/resident') || pathname.startsWith('/company') || pathname.startsWith('/administrator') ||
+      pathname.startsWith('/poblador') || pathname.startsWith('/empresa') || pathname.startsWith('/admin')) {
     supabaseResponse.headers.set('x-protected-route', 'true');
   }
 

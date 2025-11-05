@@ -1,9 +1,10 @@
-import Image from 'next/image';
-import type { Metadata } from 'next';
+import Image from "next/image";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Acceder - MinneT',
-  description: 'Plataforma de comunicación entre comunidades y proyectos mineros',
+  title: "Acceder - MinneT",
+  description:
+    "Plataforma de comunicación entre comunidades y proyectos mineros",
 };
 
 export default function AuthLayout({

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Check } from "lucide-react";
 import { CustomSelect as Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,16 +14,10 @@ import type { PobladorRegistrationData } from "@/lib/types";
 interface Step3Props {
   formData: Partial<PobladorRegistrationData>;
   updateFormData: (data: Partial<PobladorRegistrationData>) => void;
-  onSubmit: () => void;
-  isSubmitting: boolean;
+  onNext: () => void;
 }
 
-export const Step3 = ({
-  formData,
-  updateFormData,
-  onSubmit,
-  isSubmitting,
-}: Step3Props) => {
+export const Step3 = ({ formData, updateFormData, onNext }: Step3Props) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const toggleTopic = (value: string) => {
@@ -62,9 +56,9 @@ export const Step3 = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleNext = () => {
     if (validate()) {
-      onSubmit();
+      onNext();
     }
   };
 
@@ -76,7 +70,8 @@ export const Step3 = ({
             ¿Qué temas te interesan más?
           </label>
           <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md">
-            {formData.topics_interest?.length || 0} seleccionado{(formData.topics_interest?.length || 0) !== 1 ? 's' : ''}
+            {formData.topics_interest?.length || 0} seleccionado
+            {(formData.topics_interest?.length || 0) !== 1 ? "s" : ""}
           </span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -117,7 +112,8 @@ export const Step3 = ({
             ¿En qué actividades estarías dispuesto a participar?
           </label>
           <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md">
-            {formData.participation_willingness?.length || 0} seleccionada{(formData.participation_willingness?.length || 0) !== 1 ? 's' : ''}
+            {formData.participation_willingness?.length || 0} seleccionada
+            {(formData.participation_willingness?.length || 0) !== 1 ? "s" : ""}
           </span>
         </div>
         <div className="space-y-2">
@@ -155,20 +151,8 @@ export const Step3 = ({
       </div>
 
       <div className="pt-4">
-        <Button
-          className="w-full"
-          size="lg"
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Registrando...
-            </>
-          ) : (
-            "Completar registro"
-          )}
+        <Button className="w-full" size="lg" onClick={handleNext}>
+          Continuar
         </Button>
       </div>
     </div>

@@ -1,9 +1,9 @@
-import type { Metadata } from 'next';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import type { Metadata } from "next";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 
 export const metadata: Metadata = {
-  title: 'MinneT - Dashboard',
-  description: 'Panel de control - MinneT',
+  title: "MinneT - Dashboard",
+  description: "Panel de control - MinneT",
 };
 
 export default function DashboardLayout({

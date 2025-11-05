@@ -2,11 +2,13 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Check, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Check, Loader2, AlertTriangle, Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { CustomSelect as Select } from "@/components/ui/select";
 import { CustomCheckbox as Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -17,10 +19,11 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   COMPANY_POSITIONS,
+  COMPANY_AREAS,
   USE_OBJECTIVES,
   CONSULTATION_FREQUENCIES,
-  EXPORT_FORMATS,
   validateCorporateEmail,
+  validatePassword,
 } from "@/lib/validations";
 import type { EmpresaRegistrationData } from "@/lib/types";
 import { toast } from "sonner";
@@ -36,9 +39,53 @@ function RegisterEmpresaContent() {
     identifier: identifier || "",
     assigned_projects: [],
   });
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Cargar datos guardados de localStorage
+  useEffect(() => {
+    const savedData = localStorage.getItem("empresa_registration");
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        setFormData((prev) => ({ ...prev, ...parsed }));
+        // Restaurar contraseñas y otros campos si existen
+        const savedPassword = localStorage.getItem(
+          "empresa_registration_password"
+        );
+        if (savedPassword) {
+          setPassword(savedPassword);
+        }
+        const savedConsent = localStorage.getItem(
+          "empresa_registration_consent"
+        );
+        if (savedConsent) {
+          setConsent(savedConsent === "true");
+        }
+        // Notificar al usuario que sus datos fueron restaurados
+        toast.info("Se restauraron tus datos guardados", {
+          description: "Puedes continuar desde donde lo dejaste",
+        });
+      } catch (error) {
+        console.error("Error al cargar datos guardados:", error);
+      }
+    }
+  }, []);
+
+  // Guardar datos en localStorage cuando cambien
+  useEffect(() => {
+    if (formData.identifier) {
+      localStorage.setItem("empresa_registration", JSON.stringify(formData));
+      if (password) {
+        localStorage.setItem("empresa_registration_password", password);
+      }
+      localStorage.setItem("empresa_registration_consent", consent.toString());
+    }
+  }, [formData, password, consent]);
 
   useEffect(() => {
     if (!identifier) {
@@ -76,8 +123,8 @@ function RegisterEmpresaContent() {
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.full_name?.trim())
-      newErrors.full_name = "Ingresa tu nombre completo";
+    if (!formData.responsible_area?.trim())
+      newErrors.responsible_area = "Selecciona el área encargada";
     if (!formData.company_name?.trim())
       newErrors.company_name = "Ingresa el nombre de la empresa";
     if (!formData.position) newErrors.position = "Selecciona tu cargo";
@@ -87,6 +134,22 @@ function RegisterEmpresaContent() {
     ) {
       newErrors.assigned_projects = "Selecciona al menos un proyecto";
     }
+
+    if (!password) {
+      newErrors.password = "La contraseña es requerida";
+    } else {
+      const validation = validatePassword(password);
+      if (!validation.isValid) {
+        newErrors.password = validation.errors[0];
+      }
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Debes confirmar tu contraseña";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Las contraseñas no coinciden";
+    }
+
     if (!consent)
       newErrors.consent = "Debes aceptar la declaración de veracidad";
 
@@ -107,6 +170,7 @@ function RegisterEmpresaContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          password,
           identifier_type: type,
           user_type: "empresa",
           consent_version: "1.0",
@@ -125,6 +189,11 @@ function RegisterEmpresaContent() {
       }
 
       // La sesión se gestiona automáticamente con cookies HTTP-only de Supabase
+
+      // Limpiar datos del formulario guardados
+      localStorage.removeItem("empresa_registration");
+      localStorage.removeItem("empresa_registration_password");
+      localStorage.removeItem("empresa_registration_consent");
 
       toast.success(
         "Registro exitoso. Tu cuenta será revisada por un administrador."
@@ -168,57 +237,59 @@ function RegisterEmpresaContent() {
               <div className="space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Nombre Completo <span className="text-destructive">*</span>
+                    Área Encargada <span className="text-destructive">*</span>
                   </label>
-              <Input
-                placeholder="Ej: Juan Pérez García"
-                value={formData.full_name || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, full_name: e.target.value })
-                }
-              />
-              {errors.full_name && (
-                <p className="mt-1 text-sm text-destructive">
-                  {errors.full_name}
-                </p>
-              )}
-            </div>
+                  <Select
+                    placeholder="Selecciona el área encargada"
+                    value={formData.responsible_area || ""}
+                    onChange={(value) =>
+                      setFormData({ ...formData, responsible_area: value })
+                    }
+                    options={COMPANY_AREAS}
+                  />
+                  {errors.responsible_area && (
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.responsible_area}
+                    </p>
+                  )}
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Empresa / Institución <span className="text-destructive">*</span>
+                    Empresa / Institución{" "}
+                    <span className="text-destructive">*</span>
                   </label>
-              <Input
-                placeholder="Ej: Minera Las Bambas S.A."
-                value={formData.company_name || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, company_name: e.target.value })
-                }
-              />
-              {errors.company_name && (
-                <p className="mt-1 text-sm text-destructive">
-                  {errors.company_name}
-                </p>
-              )}
+                  <Input
+                    placeholder="Ej: Minera Las Bambas S.A."
+                    value={formData.company_name || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, company_name: e.target.value })
+                    }
+                  />
+                  {errors.company_name && (
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.company_name}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Cargo <span className="text-destructive">*</span>
                   </label>
-              <Select
-                placeholder="Selecciona tu cargo"
-                value={formData.position || ""}
-                onChange={(value) =>
-                  setFormData({ ...formData, position: value })
-                }
-                options={COMPANY_POSITIONS}
-              />
-              {errors.position && (
-                <p className="mt-1 text-sm text-destructive">
-                  {errors.position}
-                </p>
-              )}
+                  <Select
+                    placeholder="Selecciona tu cargo"
+                    value={formData.position || ""}
+                    onChange={(value) =>
+                      setFormData({ ...formData, position: value })
+                    }
+                    options={COMPANY_POSITIONS}
+                  />
+                  {errors.position && (
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.position}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -227,10 +298,12 @@ function RegisterEmpresaContent() {
             <div className="pt-4 border-t border-border">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-base font-semibold text-foreground">
-                  Proyectos Asignados <span className="text-destructive">*</span>
+                  Proyectos Asignados{" "}
+                  <span className="text-destructive">*</span>
                 </h3>
                 <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md">
-                  {formData.assigned_projects?.length || 0} seleccionado{(formData.assigned_projects?.length || 0) !== 1 ? 's' : ''}
+                  {formData.assigned_projects?.length || 0} seleccionado
+                  {(formData.assigned_projects?.length || 0) !== 1 ? "s" : ""}
                 </span>
               </div>
               <div className="space-y-2">
@@ -270,7 +343,10 @@ function RegisterEmpresaContent() {
             {/* Sección: Preferencias */}
             <div className="pt-4 border-t border-border">
               <h3 className="text-base font-semibold text-foreground mb-4">
-                Preferencias <span className="text-xs text-muted-foreground font-normal">(Opcional)</span>
+                Preferencias{" "}
+                <span className="text-xs text-muted-foreground font-normal">
+                  (Opcional)
+                </span>
               </h3>
 
               <div className="space-y-4">
@@ -293,16 +369,70 @@ function RegisterEmpresaContent() {
                   }
                   options={CONSULTATION_FREQUENCIES}
                 />
+              </div>
+            </div>
 
-                <Select
-                  label="Formato preferido de exportación"
-                  placeholder="Selecciona una opción"
-                  value={formData.export_format || ""}
-                  onChange={(value) =>
-                    setFormData({ ...formData, export_format: value })
-                  }
-                  options={EXPORT_FORMATS}
-                />
+            {/* Sección: Contraseña */}
+            <div className="pt-4 border-t border-border">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Lock className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-base font-semibold text-blue-900">
+                    Configura tu contraseña{" "}
+                    <span className="text-destructive">*</span>
+                  </h3>
+                </div>
+                <p className="text-sm text-blue-800">
+                  Establece una contraseña para acceder más rápido en el futuro.
+                  Ya no necesitarás códigos OTP cada vez que inicies sesión.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="password">Contraseña</Label>
+                  <PasswordInput
+                    id="password"
+                    placeholder="Crea una contraseña segura"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isSubmitting}
+                    showStrength
+                    aria-invalid={!!errors.password}
+                  />
+                  {errors.password && (
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.password}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+                  <PasswordInput
+                    id="confirmPassword"
+                    placeholder="Vuelve a ingresar tu contraseña"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isSubmitting}
+                    aria-invalid={!!errors.confirmPassword}
+                  />
+                  {errors.confirmPassword && (
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.confirmPassword}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={rememberMe} onChange={setRememberMe} />
+                  <Label
+                    htmlFor="remember"
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    Mantener mi sesión iniciada
+                  </Label>
+                </div>
               </div>
             </div>
 

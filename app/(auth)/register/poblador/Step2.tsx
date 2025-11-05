@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CustomSelect as Select } from "@/components/ui/select";
 import { CustomCheckbox as Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { PROFESSIONS } from "@/lib/validations";
+import { PROFESSIONS, JUNTA_RELATIONSHIPS } from "@/lib/validations";
 import type { PobladorRegistrationData } from "@/lib/types";
 
 interface SelectOption {
@@ -19,8 +19,8 @@ interface Step2Props {
 }
 
 const JUNTA_OPTIONS: SelectOption[] = [
-  { value: "true", label: "Sí, soy parte de la junta" },
-  { value: "false", label: "No, no soy parte" },
+  { value: "member", label: "Sí, soy parte de la junta" },
+  { value: "none", label: "No, no soy parte" },
   {
     value: "familiar",
     label: "Soy familiar o conocido de alguien de la junta",
@@ -36,8 +36,10 @@ export const Step2 = ({ formData, updateFormData, onNext }: Step2Props) => {
 
     if (!formData.profession)
       newErrors.profession = "Selecciona tu profesión u oficio";
-    if (formData.junta_link === undefined)
+    if (!formData.junta_link)
       newErrors.junta_link = "Selecciona una opción";
+    if (formData.junta_link === "familiar" && !formData.junta_relationship)
+      newErrors.junta_relationship = "Selecciona tu nivel de parentesco";
     if (!consent)
       newErrors.consent = "Debes aceptar los términos para continuar";
 
@@ -65,22 +67,28 @@ export const Step2 = ({ formData, updateFormData, onNext }: Step2Props) => {
       <Select
         label="¿Tienes vínculo con la junta directiva de la comunidad?"
         placeholder="Selecciona una opción"
-        value={
-          formData.junta_link === true
-            ? "true"
-            : formData.junta_link === false
-            ? "false"
-            : formData.junta_link === undefined
-            ? ""
-            : "familiar"
-        }
+        value={formData.junta_link || ""}
         onChange={(value) => {
-          if (value === "true") updateFormData({ junta_link: true });
-          else if (value === "false") updateFormData({ junta_link: false });
+          updateFormData({
+            junta_link: value as "member" | "familiar" | "none",
+            // Limpiar junta_relationship si no es "familiar"
+            ...(value !== "familiar" && { junta_relationship: undefined })
+          });
         }}
         options={JUNTA_OPTIONS}
         error={errors.junta_link}
       />
+
+      {formData.junta_link === "familiar" && (
+        <Select
+          label="¿Cuál es tu nivel de parentesco?"
+          placeholder="Selecciona el parentesco"
+          value={formData.junta_relationship || ""}
+          onChange={(value) => updateFormData({ junta_relationship: value })}
+          options={JUNTA_RELATIONSHIPS}
+          error={errors.junta_relationship}
+        />
+      )}
 
       <div className="pt-4 border-t border-border">
         <Checkbox

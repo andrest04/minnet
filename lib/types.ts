@@ -1,124 +1,136 @@
 // Tipos TypeScript para la aplicación MinneT
 
-export type UserType = 'poblador' | 'empresa' | 'admin';
+export type UserType = "resident" | "company" | "administrator";
 
-export type ValidationStatus = 'pending' | 'approved' | 'rejected';
+export type ValidationStatus = "pending" | "approved" | "rejected";
+
+export interface Region {
+  id: string;
+  name: string;
+  created_at: string;
+}
 
 export interface Project {
   id: string;
+  region_id: string;
   name: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   created_at: string;
 }
 
-export interface Community {
-  id: string;
-  project_id: string;
-  name: string;
-  created_at: string;
-}
+// ============================================================================
+// PERFILES BASE Y ESPECIALIZADOS (NORMALIZADOS)
+// ============================================================================
 
-export interface PobladorProfile {
+// Perfil base (datos comunes a todos los tipos de usuario)
+export interface BaseProfile {
   id: string;
-  user_type: 'poblador';
+  user_type: UserType;
   email?: string;
   phone?: string;
-  project_id: string;
-  community_id: string;
-  age_range: string;
-  education_level: string;
-  profession: string;
-  junta_link: boolean;
-  topics_interest: string[];
-  knowledge_level: string;
-  participation_willingness: string[];
   consent_version: string;
   consent_date: string;
   created_at: string;
   updated_at: string;
 }
 
-export interface EmpresaProfile {
-  id: string;
-  user_type: 'empresa';
-  email: string;
-  full_name: string;
-  company_name: string;
-  position: string;
-  assigned_projects: string[];
-  validation_status: ValidationStatus;
-  use_objective?: string;
-  consultation_frequency?: string;
-  export_format?: string;
-  consent_version: string;
-  consent_date: string;
-  created_at: string;
-  updated_at: string;
+// Perfil de poblador (resident)
+export interface ResidentProfile extends BaseProfile {
+  user_type: "resident";
+  resident_data: {
+    region_id: string;
+    project_id: string;
+    age_range: string;
+    education_level: string;
+    gender: string;
+    profession: string;
+    junta_link: "member" | "familiar" | "none";
+    junta_relationship?: string;
+    topics_interest: string[];
+    knowledge_level: string;
+    participation_willingness: string[];
+  };
 }
 
-export interface AdminProfile {
-  id: string;
-  user_type: 'admin';
-  email: string;
-  full_name: string;
-  created_at: string;
-  updated_at: string;
+// Perfil de empresa (company)
+export interface CompanyProfile extends BaseProfile {
+  user_type: "company";
+  company_data: {
+    company_name: string;
+    responsible_area: string;
+    position: string;
+    validation_status: ValidationStatus;
+    use_objective?: string;
+    consultation_frequency?: string;
+  };
+  assigned_projects: string[]; // IDs de proyectos asignados
 }
 
-export type Profile = PobladorProfile | EmpresaProfile | AdminProfile;
-
-export interface OTPCode {
-  id: string;
-  identifier: string;
-  code: string;
-  expires_at: string;
-  attempts: number;
-  verified: boolean;
-  created_at: string;
+// Perfil de administrador (administrator)
+export interface AdministratorProfile extends BaseProfile {
+  user_type: "administrator";
+  administrator_data: {
+    full_name: string;
+  };
 }
 
-// Tipos para formularios de registro
+export type Profile = ResidentProfile | CompanyProfile | AdministratorProfile;
 
-export interface PobladorRegistrationStep1 {
+// ============================================================================
+// TIPOS PARA FORMULARIOS DE REGISTRO
+// ============================================================================
+
+export interface ResidentRegistrationStep1 {
+  region_id: string;
   project_id: string;
-  community_id: string;
   age_range: string;
   education_level: string;
+  gender: string;
 }
 
-export interface PobladorRegistrationStep2 {
+export interface ResidentRegistrationStep2 {
   profession: string;
-  junta_link: boolean;
+  junta_link: "member" | "familiar" | "none";
+  junta_relationship?: string;
   consent: boolean;
 }
 
-export interface PobladorRegistrationStep3 {
+export interface ResidentRegistrationStep3 {
   topics_interest: string[];
   knowledge_level: string;
   participation_willingness: string[];
 }
 
-export interface PobladorRegistrationData
-  extends PobladorRegistrationStep1,
-    PobladorRegistrationStep2,
-    PobladorRegistrationStep3 {
+export interface ResidentRegistrationData
+  extends ResidentRegistrationStep1,
+    ResidentRegistrationStep2,
+    ResidentRegistrationStep3 {
   identifier: string;
-  identifier_type: 'email' | 'phone';
+  identifier_type: "email" | "phone";
+  password: string;
 }
 
-export interface EmpresaRegistrationData {
+export interface CompanyRegistrationData {
   identifier: string;
-  full_name: string;
+  responsible_area: string;
   company_name: string;
   position: string;
   assigned_projects: string[];
   consent: boolean;
   use_objective?: string;
   consultation_frequency?: string;
-  export_format?: string;
 }
 
-// Tipos para respuestas de API
+// Alias para compatibilidad con código existente
+export type PobladorRegistrationStep1 = ResidentRegistrationStep1;
+export type PobladorRegistrationStep2 = ResidentRegistrationStep2;
+export type PobladorRegistrationStep3 = ResidentRegistrationStep3;
+export type PobladorRegistrationData = ResidentRegistrationData;
+export type EmpresaRegistrationData = CompanyRegistrationData;
+
+// ============================================================================
+// TIPOS PARA RESPUESTAS DE API
+// ============================================================================
 
 export interface APIResponse<T = unknown> {
   success: boolean;
@@ -130,7 +142,7 @@ export interface APIResponse<T = unknown> {
 export interface SendOTPResponse {
   success: boolean;
   identifier: string;
-  identifier_type: 'email' | 'phone';
+  identifier_type: "email" | "phone";
   expires_at: string;
   message: string;
 }
@@ -151,7 +163,9 @@ export interface RegistrationResponse {
   message: string;
 }
 
-// Tipos para el contexto de autenticación
+// ============================================================================
+// TIPOS PARA AUTENTICACIÓN
+// ============================================================================
 
 export interface AuthContextType {
   user: Profile | null;
@@ -159,5 +173,17 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   login: (identifier: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
-  register: (data: PobladorRegistrationData | EmpresaRegistrationData) => Promise<void>;
+  register: (
+    data: ResidentRegistrationData | CompanyRegistrationData
+  ) => Promise<void>;
+}
+
+// ============================================================================
+// TIPOS PARA RELACIONES MANY-TO-MANY
+// ============================================================================
+
+export interface CompanyProject {
+  company_id: string;
+  project_id: string;
+  assigned_at: string;
 }

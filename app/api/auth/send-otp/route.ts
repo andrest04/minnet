@@ -39,7 +39,6 @@ export async function POST(request: NextRequest) {
       successMessage = "Código enviado a tu email";
     } else {
       normalizedIdentifier = "+51" + cleanPhone(identifier);
-      console.log("Intentando enviar OTP a teléfono:", normalizedIdentifier);
       response = await supabase.auth.signInWithOtp({
         phone: normalizedIdentifier,
       });
@@ -71,8 +70,6 @@ export async function POST(request: NextRequest) {
         { status }
       );
     }
-
-    console.log(`Supabase envió OTP a ${normalizedIdentifier} (${type})`);
 
     return NextResponse.json({
       success: true,
