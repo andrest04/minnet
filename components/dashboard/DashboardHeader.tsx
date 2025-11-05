@@ -65,7 +65,7 @@ export function DashboardHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-white/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-white/80 backdrop-blur-md supports-backdrop-filter:bg-white/60">
       <div className="container flex h-16 items-center px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <Image
