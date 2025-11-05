@@ -1,85 +1,119 @@
--- MinneT Database Schema
+-- MinneT Database Schema - Normalized Version
 -- Ejecutar este script en el SQL Editor de Supabase
 
 -- Habilitar extensiones necesarias
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Tabla de proyectos mineros
-CREATE TABLE IF NOT EXISTS projects (
+-- ============================================================================
+-- TABLAS PRINCIPALES
+-- ============================================================================
+
+-- Tabla de regiones del Perú
+CREATE TABLE IF NOT EXISTS regions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL UNIQUE,
-  status TEXT CHECK (status IN ('active', 'inactive')) DEFAULT 'active',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Tabla de comunidades
-CREATE TABLE IF NOT EXISTS communities (
+-- Tabla de proyectos mineros
+CREATE TABLE IF NOT EXISTS projects (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  region_id UUID NOT NULL REFERENCES regions(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
+  status TEXT CHECK (status IN ('active', 'inactive')) DEFAULT 'active',
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(project_id, name)
+  UNIQUE(region_id, name)
 );
 
--- Crear índice para búsquedas por proyecto
-CREATE INDEX IF NOT EXISTS idx_communities_project_id ON communities(project_id);
+-- Índices para projects
+CREATE INDEX IF NOT EXISTS idx_projects_region_id ON projects(region_id);
+CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status) WHERE status = 'active';
 
--- Tabla de perfiles de usuario (extiende auth.users)
+-- ============================================================================
+-- TABLAS DE PERFILES (NORMALIZADAS)
+-- ============================================================================
+
+-- Tabla base de perfiles (solo datos comunes)
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  user_type TEXT NOT NULL CHECK (user_type IN ('poblador', 'empresa', 'admin')),
+  user_type TEXT NOT NULL CHECK (user_type IN ('resident', 'company', 'administrator')),
   email TEXT,
   phone TEXT,
-
-  -- Campos específicos de poblador
-  project_id UUID REFERENCES projects(id),
-  community_id UUID REFERENCES communities(id),
-  age_range TEXT,
-  education_level TEXT,
-  profession TEXT,
-  junta_link BOOLEAN,
-  topics_interest TEXT[], -- Array de temas
-  knowledge_level TEXT,
-  participation_willingness TEXT[], -- Array de opciones
-
-  -- Campos específicos de empresa
-  full_name TEXT,
-  company_name TEXT,
-  position TEXT,
-  assigned_projects TEXT[], -- Array de UUIDs de proyectos
-  validation_status TEXT CHECK (validation_status IN ('pending', 'approved', 'rejected')),
-  use_objective TEXT,
-  consultation_frequency TEXT,
-  export_format TEXT,
-
-  -- Metadata de consentimiento
   consent_version TEXT,
   consent_date TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT email_or_phone_required CHECK (email IS NOT NULL OR phone IS NOT NULL)
+);
 
-  -- Timestamps
+-- Índices para profiles
+CREATE INDEX IF NOT EXISTS idx_profiles_user_type ON profiles(user_type);
+CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email) WHERE email IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_profiles_phone ON profiles(phone) WHERE phone IS NOT NULL;
+
+-- Tabla de perfiles de pobladores
+CREATE TABLE IF NOT EXISTS residents (
+  id UUID PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
+  region_id UUID NOT NULL REFERENCES regions(id),
+  project_id UUID NOT NULL REFERENCES projects(id),
+  age_range TEXT NOT NULL,
+  education_level TEXT NOT NULL,
+  gender TEXT NOT NULL,
+  profession TEXT NOT NULL,
+  junta_link TEXT CHECK (junta_link IN ('member', 'familiar', 'none')),
+  junta_relationship TEXT,
+  topics_interest TEXT[] NOT NULL DEFAULT '{}',
+  knowledge_level TEXT NOT NULL,
+  participation_willingness TEXT[] NOT NULL DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Crear índices para mejorar rendimiento
-CREATE INDEX IF NOT EXISTS idx_profiles_user_type ON profiles(user_type);
-CREATE INDEX IF NOT EXISTS idx_profiles_project_id ON profiles(project_id);
-CREATE INDEX IF NOT EXISTS idx_profiles_community_id ON profiles(community_id);
-CREATE INDEX IF NOT EXISTS idx_profiles_validation_status ON profiles(validation_status);
+-- Índices para residents
+CREATE INDEX IF NOT EXISTS idx_residents_region_id ON residents(region_id);
+CREATE INDEX IF NOT EXISTS idx_residents_project_id ON residents(project_id);
+CREATE INDEX IF NOT EXISTS idx_residents_region_project ON residents(region_id, project_id);
 
--- Tabla de códigos OTP
-CREATE TABLE IF NOT EXISTS otp_codes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  identifier TEXT NOT NULL, -- email o teléfono
-  code TEXT NOT NULL,
-  expires_at TIMESTAMPTZ NOT NULL,
-  attempts INT DEFAULT 0,
-  verified BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+-- Tabla de perfiles de empresas
+CREATE TABLE IF NOT EXISTS companies (
+  id UUID PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
+  company_name TEXT NOT NULL,
+  responsible_area TEXT NOT NULL,
+  position TEXT NOT NULL,
+  validation_status TEXT CHECK (validation_status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending',
+  use_objective TEXT,
+  consultation_frequency TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Índice para búsquedas rápidas de OTP
-CREATE INDEX IF NOT EXISTS idx_otp_identifier ON otp_codes(identifier, verified);
+-- Índices para companies
+CREATE INDEX IF NOT EXISTS idx_companies_validation_status ON companies(validation_status);
+CREATE INDEX IF NOT EXISTS idx_companies_pending ON companies(validation_status) WHERE validation_status = 'pending';
+
+-- Tabla de relación many-to-many: empresas y proyectos asignados
+CREATE TABLE IF NOT EXISTS company_projects (
+  company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  assigned_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (company_id, project_id)
+);
+
+-- Índices para company_projects
+CREATE INDEX IF NOT EXISTS idx_company_projects_company_id ON company_projects(company_id);
+CREATE INDEX IF NOT EXISTS idx_company_projects_project_id ON company_projects(project_id);
+
+-- Tabla de perfiles de administradores
+CREATE TABLE IF NOT EXISTS administrators (
+  id UUID PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
+  full_name TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
+-- FUNCIONES Y TRIGGERS
+-- ============================================================================
 
 -- Función para actualizar updated_at automáticamente
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -90,29 +124,93 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger para actualizar updated_at en profiles
+-- Triggers para actualizar updated_at
 CREATE TRIGGER update_profiles_updated_at
   BEFORE UPDATE ON profiles
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
--- Función para limpiar OTPs expirados (se puede ejecutar con pg_cron)
-CREATE OR REPLACE FUNCTION cleanup_expired_otps()
-RETURNS void AS $$
-BEGIN
-  DELETE FROM otp_codes WHERE expires_at < NOW();
-END;
-$$ LANGUAGE plpgsql;
+CREATE TRIGGER update_residents_updated_at
+  BEFORE UPDATE ON residents
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
 
--- Políticas de seguridad (Row Level Security)
+CREATE TRIGGER update_companies_updated_at
+  BEFORE UPDATE ON companies
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_administrators_updated_at
+  BEFORE UPDATE ON administrators
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- POLÍTICAS DE SEGURIDAD (ROW LEVEL SECURITY)
+-- ============================================================================
 
 -- Habilitar RLS en todas las tablas
+ALTER TABLE regions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE communities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE otp_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE residents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE company_projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE administrators ENABLE ROW LEVEL SECURITY;
 
--- Políticas para projects (todos pueden leer, solo admins pueden modificar)
+-- ----------------------------------------------------------------------------
+-- Políticas para REGIONS
+-- ----------------------------------------------------------------------------
+
+CREATE POLICY "Regions are viewable by everyone"
+  ON regions FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Only admins can insert regions"
+  ON regions FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  );
+
+CREATE POLICY "Only admins can update regions"
+  ON regions FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  );
+
+CREATE POLICY "Only admins can delete regions"
+  ON regions FOR DELETE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  );
+
+-- ----------------------------------------------------------------------------
+-- Políticas para PROJECTS
+-- ----------------------------------------------------------------------------
+
 CREATE POLICY "Projects are viewable by everyone"
   ON projects FOR SELECT
   TO authenticated
@@ -125,28 +223,43 @@ CREATE POLICY "Only admins can insert projects"
     EXISTS (
       SELECT 1 FROM profiles
       WHERE profiles.id = auth.uid()
-      AND profiles.user_type = 'admin'
+      AND profiles.user_type = 'administrator'
     )
   );
 
--- Políticas para communities (todos pueden leer)
-CREATE POLICY "Communities are viewable by everyone"
-  ON communities FOR SELECT
+CREATE POLICY "Only admins can update projects"
+  ON projects FOR UPDATE
   TO authenticated
-  USING (true);
-
-CREATE POLICY "Only admins can insert communities"
-  ON communities FOR INSERT
-  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM profiles
       WHERE profiles.id = auth.uid()
-      AND profiles.user_type = 'admin'
+      AND profiles.user_type = 'administrator'
     )
   );
 
--- Políticas para profiles
+CREATE POLICY "Only admins can delete projects"
+  ON projects FOR DELETE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  );
+
+-- ----------------------------------------------------------------------------
+-- Políticas para PROFILES
+-- ----------------------------------------------------------------------------
+
 CREATE POLICY "Users can view their own profile"
   ON profiles FOR SELECT
   TO authenticated
@@ -159,7 +272,7 @@ CREATE POLICY "Admins can view all profiles"
     EXISTS (
       SELECT 1 FROM profiles
       WHERE profiles.id = auth.uid()
-      AND profiles.user_type = 'admin'
+      AND profiles.user_type = 'administrator'
     )
   );
 
@@ -181,63 +294,209 @@ CREATE POLICY "Admins can update any profile"
     EXISTS (
       SELECT 1 FROM profiles
       WHERE profiles.id = auth.uid()
-      AND profiles.user_type = 'admin'
+      AND profiles.user_type = 'administrator'
     )
   );
 
--- Políticas para otp_codes (solo acceso a través de funciones del servidor)
-CREATE POLICY "OTP codes are only accessible by service role"
-  ON otp_codes FOR ALL
-  TO service_role
-  USING (true);
+-- ----------------------------------------------------------------------------
+-- Políticas para RESIDENTS
+-- ----------------------------------------------------------------------------
 
--- Datos iniciales (seed data)
+CREATE POLICY "Residents can view their own data"
+  ON residents FOR SELECT
+  TO authenticated
+  USING (auth.uid() = id);
 
--- Insertar proyectos de ejemplo
-INSERT INTO projects (name, status) VALUES
-  ('Proyecto Las Bambas', 'active'),
-  ('Proyecto Yanacocha', 'active'),
-  ('Proyecto Antamina', 'active')
+CREATE POLICY "Admins can view all residents"
+  ON residents FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  );
+
+CREATE POLICY "Residents can insert their own data"
+  ON residents FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Residents can update their own data"
+  ON residents FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Admins can update any resident"
+  ON residents FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  );
+
+-- ----------------------------------------------------------------------------
+-- Políticas para COMPANIES
+-- ----------------------------------------------------------------------------
+
+CREATE POLICY "Companies can view their own data"
+  ON companies FOR SELECT
+  TO authenticated
+  USING (auth.uid() = id);
+
+CREATE POLICY "Admins can view all companies"
+  ON companies FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  );
+
+CREATE POLICY "Companies can insert their own data"
+  ON companies FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Companies can update their own data"
+  ON companies FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Admins can update any company"
+  ON companies FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  );
+
+-- ----------------------------------------------------------------------------
+-- Políticas para COMPANY_PROJECTS
+-- ----------------------------------------------------------------------------
+
+CREATE POLICY "Companies can view their own projects"
+  ON company_projects FOR SELECT
+  TO authenticated
+  USING (auth.uid() = company_id);
+
+CREATE POLICY "Admins can view all company projects"
+  ON company_projects FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  );
+
+CREATE POLICY "Only admins can assign projects to companies"
+  ON company_projects FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  );
+
+CREATE POLICY "Only admins can remove project assignments"
+  ON company_projects FOR DELETE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  );
+
+-- ----------------------------------------------------------------------------
+-- Políticas para ADMINISTRATORS
+-- ----------------------------------------------------------------------------
+
+CREATE POLICY "Admins can view their own data"
+  ON administrators FOR SELECT
+  TO authenticated
+  USING (auth.uid() = id);
+
+CREATE POLICY "Admins can view all administrators"
+  ON administrators FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.user_type = 'administrator'
+    )
+  );
+
+CREATE POLICY "Admins can insert their own data"
+  ON administrators FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Admins can update their own data"
+  ON administrators FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+
+-- ============================================================================
+-- DATOS INICIALES (SEED DATA)
+-- ============================================================================
+
+-- Insertar las 25 regiones del Perú
+INSERT INTO regions (name) VALUES
+  ('Amazonas'),
+  ('Áncash'),
+  ('Apurímac'),
+  ('Arequipa'),
+  ('Ayacucho'),
+  ('Cajamarca'),
+  ('Cusco'),
+  ('Huancavelica'),
+  ('Huánuco'),
+  ('Ica'),
+  ('Junín'),
+  ('La Libertad'),
+  ('Lambayeque'),
+  ('Lima (Región)'),
+  ('Loreto'),
+  ('Madre de Dios'),
+  ('Moquegua'),
+  ('Pasco'),
+  ('Piura'),
+  ('Puno'),
+  ('San Martín'),
+  ('Tacna'),
+  ('Tumbes'),
+  ('Ucayali'),
+  ('Provincia Constitucional del Callao')
 ON CONFLICT (name) DO NOTHING;
 
--- Insertar comunidades de ejemplo para cada proyecto
-INSERT INTO communities (project_id, name)
-SELECT p.id, c.name
-FROM projects p
+-- Insertar proyectos de ejemplo asociados a regiones
+INSERT INTO projects (region_id, name, status)
+SELECT r.id, p.name, p.status
+FROM regions r
 CROSS JOIN (
   VALUES
-    ('Fuerabamba'),
-    ('Challhuahuacho'),
-    ('Huancuire'),
-    ('Chicñahui')
-) AS c(name)
-WHERE p.name = 'Proyecto Las Bambas'
-ON CONFLICT (project_id, name) DO NOTHING;
-
-INSERT INTO communities (project_id, name)
-SELECT p.id, c.name
-FROM projects p
-CROSS JOIN (
-  VALUES
-    ('Porcón'),
-    ('La Jalca'),
-    ('Tual'),
-    ('Combayo')
-) AS c(name)
-WHERE p.name = 'Proyecto Yanacocha'
-ON CONFLICT (project_id, name) DO NOTHING;
-
-INSERT INTO communities (project_id, name)
-SELECT p.id, c.name
-FROM projects p
-CROSS JOIN (
-  VALUES
-    ('San Marcos'),
-    ('Huallanca'),
-    ('Conchucos'),
-    ('Ajoyanca')
-) AS c(name)
-WHERE p.name = 'Proyecto Antamina'
-ON CONFLICT (project_id, name) DO NOTHING;
-
--- Nota: El usuario admin se creará a través de la interfaz después del primer registro
+    ('Proyecto Las Bambas', 'active', 'Apurímac'),
+    ('Proyecto Yanacocha', 'active', 'Cajamarca'),
+    ('Proyecto Antamina', 'active', 'Áncash')
+) AS p(name, status, region_name)
+WHERE r.name = p.region_name
+ON CONFLICT (region_id, name) DO NOTHING;

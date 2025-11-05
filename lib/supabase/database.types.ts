@@ -1,5 +1,5 @@
-// Tipos generados automáticamente por Supabase
-// Estos tipos serán actualizados cuando se cree el esquema de la base de datos
+// Tipos generados desde el schema de Supabase
+// IMPORTANTE: Regenerar con: npx supabase gen types typescript --local > lib/supabase/database.types.ts
 
 export type Json =
   | string
@@ -7,175 +7,214 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[]
+  | Json[];
 
 export interface Database {
   public: {
     Tables: {
+      regions: {
+        Row: {
+          id: string;
+          name: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          created_at?: string;
+        };
+      };
       projects: {
         Row: {
-          id: string
-          name: string
-          status: 'active' | 'inactive'
-          created_at: string
-        }
+          id: string;
+          region_id: string;
+          name: string;
+          status: "active" | "inactive";
+          created_at: string;
+        };
         Insert: {
-          id?: string
-          name: string
-          status?: 'active' | 'inactive'
-          created_at?: string
-        }
+          id?: string;
+          region_id: string;
+          name: string;
+          status?: "active" | "inactive";
+          created_at?: string;
+        };
         Update: {
-          id?: string
-          name?: string
-          status?: 'active' | 'inactive'
-          created_at?: string
-        }
-      }
-      communities: {
-        Row: {
-          id: string
-          project_id: string
-          name: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          project_id: string
-          name: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          project_id?: string
-          name?: string
-          created_at?: string
-        }
-      }
+          id?: string;
+          region_id?: string;
+          name?: string;
+          status?: "active" | "inactive";
+          created_at?: string;
+        };
+      };
       profiles: {
         Row: {
-          id: string
-          user_type: 'poblador' | 'empresa' | 'admin'
-          email: string | null
-          phone: string | null
-          // Campos de poblador
-          project_id: string | null
-          community_id: string | null
-          age_range: string | null
-          education_level: string | null
-          profession: string | null
-          junta_link: boolean | null
-          topics_interest: string[] | null
-          knowledge_level: string | null
-          participation_willingness: string[] | null
-          // Campos de empresa
-          full_name: string | null
-          company_name: string | null
-          position: string | null
-          assigned_projects: string[] | null
-          validation_status: 'pending' | 'approved' | 'rejected' | null
-          use_objective: string | null
-          consultation_frequency: string | null
-          export_format: string | null
-          // Metadata
-          consent_version: string | null
-          consent_date: string | null
-          created_at: string
-          updated_at: string
-        }
+          id: string;
+          user_type: "resident" | "company" | "administrator";
+          email: string | null;
+          phone: string | null;
+          consent_version: string | null;
+          consent_date: string | null;
+          created_at: string;
+          updated_at: string;
+        };
         Insert: {
-          id?: string
-          user_type: 'poblador' | 'empresa' | 'admin'
-          email?: string | null
-          phone?: string | null
-          project_id?: string | null
-          community_id?: string | null
-          age_range?: string | null
-          education_level?: string | null
-          profession?: string | null
-          junta_link?: boolean | null
-          topics_interest?: string[] | null
-          knowledge_level?: string | null
-          participation_willingness?: string[] | null
-          full_name?: string | null
-          company_name?: string | null
-          position?: string | null
-          assigned_projects?: string[] | null
-          validation_status?: 'pending' | 'approved' | 'rejected' | null
-          use_objective?: string | null
-          consultation_frequency?: string | null
-          export_format?: string | null
-          consent_version?: string | null
-          consent_date?: string | null
-          created_at?: string
-          updated_at?: string
-        }
+          id: string;
+          user_type: "resident" | "company" | "administrator";
+          email?: string | null;
+          phone?: string | null;
+          consent_version?: string | null;
+          consent_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
         Update: {
-          id?: string
-          user_type?: 'poblador' | 'empresa' | 'admin'
-          email?: string | null
-          phone?: string | null
-          project_id?: string | null
-          community_id?: string | null
-          age_range?: string | null
-          education_level?: string | null
-          profession?: string | null
-          junta_link?: boolean | null
-          topics_interest?: string[] | null
-          knowledge_level?: string | null
-          participation_willingness?: string[] | null
-          full_name?: string | null
-          company_name?: string | null
-          position?: string | null
-          assigned_projects?: string[] | null
-          validation_status?: 'pending' | 'approved' | 'rejected' | null
-          use_objective?: string | null
-          consultation_frequency?: string | null
-          export_format?: string | null
-          consent_version?: string | null
-          consent_date?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      otp_codes: {
+          id?: string;
+          user_type?: "resident" | "company" | "administrator";
+          email?: string | null;
+          phone?: string | null;
+          consent_version?: string | null;
+          consent_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      residents: {
         Row: {
-          id: string
-          identifier: string
-          code: string
-          expires_at: string
-          attempts: number
-          verified: boolean
-          created_at: string
-        }
+          id: string;
+          region_id: string;
+          project_id: string;
+          age_range: string;
+          education_level: string;
+          gender: string;
+          profession: string;
+          junta_link: "member" | "familiar" | "none" | null;
+          junta_relationship: string | null;
+          topics_interest: string[];
+          knowledge_level: string;
+          participation_willingness: string[];
+          created_at: string;
+          updated_at: string;
+        };
         Insert: {
-          id?: string
-          identifier: string
-          code: string
-          expires_at: string
-          attempts?: number
-          verified?: boolean
-          created_at?: string
-        }
+          id: string;
+          region_id: string;
+          project_id: string;
+          age_range: string;
+          education_level: string;
+          gender: string;
+          profession: string;
+          junta_link?: "member" | "familiar" | "none" | null;
+          junta_relationship?: string | null;
+          topics_interest: string[];
+          knowledge_level: string;
+          participation_willingness: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
         Update: {
-          id?: string
-          identifier?: string
-          code?: string
-          expires_at?: string
-          attempts?: number
-          verified?: boolean
-          created_at?: string
-        }
-      }
-    }
+          id?: string;
+          region_id?: string;
+          project_id?: string;
+          age_range?: string;
+          education_level?: string;
+          gender?: string;
+          profession?: string;
+          junta_link?: "member" | "familiar" | "none" | null;
+          junta_relationship?: string | null;
+          topics_interest?: string[];
+          knowledge_level?: string;
+          participation_willingness?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      companies: {
+        Row: {
+          id: string;
+          company_name: string;
+          responsible_area: string;
+          position: string;
+          validation_status: "pending" | "approved" | "rejected";
+          use_objective: string | null;
+          consultation_frequency: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          company_name: string;
+          responsible_area: string;
+          position: string;
+          validation_status?: "pending" | "approved" | "rejected";
+          use_objective?: string | null;
+          consultation_frequency?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          company_name?: string;
+          responsible_area?: string;
+          position?: string;
+          validation_status?: "pending" | "approved" | "rejected";
+          use_objective?: string | null;
+          consultation_frequency?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      company_projects: {
+        Row: {
+          company_id: string;
+          project_id: string;
+          assigned_at: string;
+        };
+        Insert: {
+          company_id: string;
+          project_id: string;
+          assigned_at?: string;
+        };
+        Update: {
+          company_id?: string;
+          project_id?: string;
+          assigned_at?: string;
+        };
+      };
+      administrators: {
+        Row: {
+          id: string;
+          full_name: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          full_name: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          full_name?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Enums: {
-      [_ in never]: never
-    }
-  }
+      [_ in never]: never;
+    };
+  };
 }
