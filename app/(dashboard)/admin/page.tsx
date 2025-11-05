@@ -260,9 +260,13 @@ export default function AdminPage() {
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => handleUpdateStatus(company.id, 'rejected')}
+                            onClick={() => {
+                              if (confirm(`¿Estás seguro de eliminar la cuenta de ${company.company_name}?\n\nEsta acción eliminará permanentemente:\n- Datos de la empresa\n- Cuenta de usuario\n- Proyectos asignados\n\nEsta acción NO se puede deshacer.`)) {
+                                handleUpdateStatus(company.id, 'rejected');
+                              }
+                            }}
                           >
-                            Rechazar
+                            Eliminar Cuenta
                           </Button>
                         </div>
                       )}
