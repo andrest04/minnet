@@ -29,39 +29,54 @@ export async function GET() {
       );
     }
 
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('user_type, validation_status, project_id') as {
-      data: Array<{
-        user_type: string;
-        validation_status: string | null;
-        project_id: string | null;
-      }> | null;
-    };
+    // Count residents
+    const { count: residentCount } = await supabase
+      .from('residents')
+      .select('*', { count: 'exact', head: true });
+
+    // Count companies by status
+    const { count: totalCompaniesCount } = await supabase
+      .from('companies')
+      .select('*', { count: 'exact', head: true });
+
+    const { count: pendingCompaniesCount } = await supabase
+      .from('companies')
+      .select('*', { count: 'exact', head: true })
+      .eq('validation_status', 'pending');
+
+    const { count: approvedCompaniesCount } = await supabase
+      .from('companies')
+      .select('*', { count: 'exact', head: true })
+      .eq('validation_status', 'approved');
 
     const stats = {
-      total_pobladores: profiles?.filter((p) => p.user_type === 'resident').length || 0,
-      total_empresas: profiles?.filter((p) => p.user_type === 'company').length || 0,
-      empresas_pendientes:
-        profiles?.filter((p) => p.user_type === 'company' && p.validation_status === 'pending')
-          .length || 0,
-      empresas_aprobadas:
-        profiles?.filter((p) => p.user_type === 'company' && p.validation_status === 'approved')
-          .length || 0,
+      total_pobladores: residentCount || 0,
+      total_empresas: totalCompaniesCount || 0,
+      empresas_pendientes: pendingCompaniesCount || 0,
+      empresas_aprobadas: approvedCompaniesCount || 0,
     };
 
-    const { data: projects } = (await supabase
+    // Get projects with resident counts
+    const { data: projects } = await supabase
       .from('projects')
       .select('id, name')
-      .eq('status', 'active')) as {
-      data: Array<{ id: string; name: string }> | null;
-    };
+      .eq('status', 'active');
 
-    const projectStats = projects?.map((project) => ({
-      project_id: project.id,
-      project_name: project.name,
-      pobladores_count: profiles?.filter((p) => p.project_id === project.id).length || 0,
-    }));
+    // Count residents per project
+    const projectStats = await Promise.all(
+      projects?.map(async (project) => {
+        const { count } = await supabase
+          .from('residents')
+          .select('*', { count: 'exact', head: true })
+          .eq('project_id', project.id);
+
+        return {
+          project_id: project.id,
+          project_name: project.name,
+          pobladores_count: count || 0,
+        };
+      }) || []
+    );
 
     return NextResponse.json({
       success: true,
