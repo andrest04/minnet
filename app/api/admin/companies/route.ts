@@ -32,22 +32,21 @@ export async function GET() {
       );
     }
 
-    // Join profiles with companies table to get complete company data
+    // Query companies table directly and join with profiles for email
     const { data: companies, error } = await supabase
-      .from("profiles")
+      .from("companies")
       .select(`
         id,
-        email,
-        phone,
+        company_name,
+        responsible_area,
+        position,
+        validation_status,
         created_at,
-        companies (
-          company_name,
-          responsible_area,
-          position,
-          validation_status
+        profiles!inner (
+          email,
+          phone
         )
       `)
-      .eq("user_type", "company")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -58,17 +57,17 @@ export async function GET() {
       );
     }
 
-    // Transform the data to flatten the companies relationship
-    const transformedCompanies = companies?.map((profile: any) => ({
-      id: profile.id,
-      email: profile.email,
-      phone: profile.phone,
-      created_at: profile.created_at,
-      company_name: profile.companies?.company_name || "",
-      responsible_area: profile.companies?.responsible_area || "",
-      position: profile.companies?.position || "",
-      validation_status: profile.companies?.validation_status || "pending",
-      full_name: profile.companies?.company_name || profile.email || "Sin nombre",
+    // Transform the data to flatten the profiles relationship
+    const transformedCompanies = companies?.map((company: any) => ({
+      id: company.id,
+      email: company.profiles?.email || "",
+      phone: company.profiles?.phone || "",
+      created_at: company.created_at,
+      company_name: company.company_name || "",
+      responsible_area: company.responsible_area || "",
+      position: company.position || "",
+      validation_status: company.validation_status || "pending",
+      full_name: company.company_name || company.profiles?.email || "Sin nombre",
     }));
 
     return NextResponse.json({
