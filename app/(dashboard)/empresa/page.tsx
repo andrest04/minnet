@@ -172,7 +172,17 @@ export default function EmpresaPage() {
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">Cargo</p>
                 <p className="font-semibold text-foreground">
-                  {profile?.position || "No especificado"}
+                  {profile?.position === "gerente_social"
+                    ? "Gerente de Responsabilidad Social"
+                    : profile?.position === "gestion_social"
+                    ? "Gestión Social"
+                    : profile?.position === "conflictos"
+                    ? "Resolución de Conflictos"
+                    : profile?.position === "analista"
+                    ? "Analista"
+                    : profile?.position === "otro"
+                    ? "Otro"
+                    : profile?.position || "No especificado"}
                 </p>
               </div>
             </div>
@@ -182,7 +192,13 @@ export default function EmpresaPage() {
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">Área Responsable</p>
                 <p className="font-semibold text-foreground">
-                  {profile?.responsible_area || "No especificado"}
+                  {profile?.responsible_area === "gerencia_general_proyecto"
+                    ? "Gerencia General del Proyecto"
+                    : profile?.responsible_area === "gerencia_relaciones_sociales"
+                    ? "Gerencia de Relaciones Sociales"
+                    : profile?.responsible_area === "otro"
+                    ? "Otro"
+                    : profile?.responsible_area || "No especificado"}
                 </p>
               </div>
             </div>
@@ -217,7 +233,17 @@ export default function EmpresaPage() {
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">Objetivo de Uso</p>
                   <p className="font-semibold text-foreground">
-                    {profile.use_objective}
+                    {profile.use_objective === "percepciones"
+                      ? "Monitoreo de Percepciones"
+                      : profile.use_objective === "estrategias"
+                      ? "Desarrollo de Estrategias"
+                      : profile.use_objective === "reportes"
+                      ? "Generación de Reportes"
+                      : profile.use_objective === "riesgos"
+                      ? "Gestión de Riesgos"
+                      : profile.use_objective === "otro"
+                      ? "Otro"
+                      : profile.use_objective}
                   </p>
                 </div>
               </div>
@@ -229,7 +255,15 @@ export default function EmpresaPage() {
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">Frecuencia de Consulta</p>
                   <p className="font-semibold text-foreground">
-                    {profile.consultation_frequency}
+                    {profile.consultation_frequency === "semanal"
+                      ? "Semanal"
+                      : profile.consultation_frequency === "quincenal"
+                      ? "Quincenal"
+                      : profile.consultation_frequency === "mensual"
+                      ? "Mensual"
+                      : profile.consultation_frequency === "trimestral"
+                      ? "Trimestral"
+                      : profile.consultation_frequency}
                   </p>
                 </div>
               </div>
