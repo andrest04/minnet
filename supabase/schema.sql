@@ -60,6 +60,8 @@ CREATE TABLE IF NOT EXISTS residents (
   education_level TEXT NOT NULL,
   gender TEXT NOT NULL,
   profession TEXT NOT NULL,
+  employment_status TEXT,
+  trust_level TEXT,
   junta_link TEXT CHECK (junta_link IN ('member', 'familiar', 'none')),
   junta_relationship TEXT,
   topics_interest TEXT[] NOT NULL DEFAULT '{}',
@@ -125,21 +127,25 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Triggers para actualizar updated_at
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
 CREATE TRIGGER update_profiles_updated_at
   BEFORE UPDATE ON profiles
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_residents_updated_at ON residents;
 CREATE TRIGGER update_residents_updated_at
   BEFORE UPDATE ON residents
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_companies_updated_at ON companies;
 CREATE TRIGGER update_companies_updated_at
   BEFORE UPDATE ON companies
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_administrators_updated_at ON administrators;
 CREATE TRIGGER update_administrators_updated_at
   BEFORE UPDATE ON administrators
   FOR EACH ROW
@@ -162,11 +168,13 @@ ALTER TABLE administrators ENABLE ROW LEVEL SECURITY;
 -- Políticas para REGIONS
 -- ----------------------------------------------------------------------------
 
+DROP POLICY IF EXISTS "Regions are viewable by everyone" ON regions;
 CREATE POLICY "Regions are viewable by everyone"
   ON regions FOR SELECT
   TO authenticated
   USING (true);
 
+DROP POLICY IF EXISTS "Only admins can insert regions" ON regions;
 CREATE POLICY "Only admins can insert regions"
   ON regions FOR INSERT
   TO authenticated
@@ -178,6 +186,7 @@ CREATE POLICY "Only admins can insert regions"
     )
   );
 
+DROP POLICY IF EXISTS "Only admins can update regions" ON regions;
 CREATE POLICY "Only admins can update regions"
   ON regions FOR UPDATE
   TO authenticated
@@ -196,6 +205,7 @@ CREATE POLICY "Only admins can update regions"
     )
   );
 
+DROP POLICY IF EXISTS "Only admins can delete regions" ON regions;
 CREATE POLICY "Only admins can delete regions"
   ON regions FOR DELETE
   TO authenticated
@@ -211,11 +221,13 @@ CREATE POLICY "Only admins can delete regions"
 -- Políticas para PROJECTS
 -- ----------------------------------------------------------------------------
 
+DROP POLICY IF EXISTS "Projects are viewable by everyone" ON projects;
 CREATE POLICY "Projects are viewable by everyone"
   ON projects FOR SELECT
   TO authenticated
   USING (true);
 
+DROP POLICY IF EXISTS "Only admins can insert projects" ON projects;
 CREATE POLICY "Only admins can insert projects"
   ON projects FOR INSERT
   TO authenticated
@@ -227,6 +239,7 @@ CREATE POLICY "Only admins can insert projects"
     )
   );
 
+DROP POLICY IF EXISTS "Only admins can update projects" ON projects;
 CREATE POLICY "Only admins can update projects"
   ON projects FOR UPDATE
   TO authenticated
@@ -245,6 +258,7 @@ CREATE POLICY "Only admins can update projects"
     )
   );
 
+DROP POLICY IF EXISTS "Only admins can delete projects" ON projects;
 CREATE POLICY "Only admins can delete projects"
   ON projects FOR DELETE
   TO authenticated
@@ -260,11 +274,13 @@ CREATE POLICY "Only admins can delete projects"
 -- Políticas para PROFILES
 -- ----------------------------------------------------------------------------
 
+DROP POLICY IF EXISTS "Users can view their own profile" ON profiles;
 CREATE POLICY "Users can view their own profile"
   ON profiles FOR SELECT
   TO authenticated
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
 CREATE POLICY "Admins can view all profiles"
   ON profiles FOR SELECT
   TO authenticated
@@ -276,17 +292,20 @@ CREATE POLICY "Admins can view all profiles"
     )
   );
 
+DROP POLICY IF EXISTS "Users can insert their own profile" ON profiles;
 CREATE POLICY "Users can insert their own profile"
   ON profiles FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
 CREATE POLICY "Users can update their own profile"
   ON profiles FOR UPDATE
   TO authenticated
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Admins can update any profile" ON profiles;
 CREATE POLICY "Admins can update any profile"
   ON profiles FOR UPDATE
   TO authenticated
@@ -302,11 +321,13 @@ CREATE POLICY "Admins can update any profile"
 -- Políticas para RESIDENTS
 -- ----------------------------------------------------------------------------
 
+DROP POLICY IF EXISTS "Residents can view their own data" ON residents;
 CREATE POLICY "Residents can view their own data"
   ON residents FOR SELECT
   TO authenticated
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Admins can view all residents" ON residents;
 CREATE POLICY "Admins can view all residents"
   ON residents FOR SELECT
   TO authenticated
@@ -318,17 +339,20 @@ CREATE POLICY "Admins can view all residents"
     )
   );
 
+DROP POLICY IF EXISTS "Residents can insert their own data" ON residents;
 CREATE POLICY "Residents can insert their own data"
   ON residents FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Residents can update their own data" ON residents;
 CREATE POLICY "Residents can update their own data"
   ON residents FOR UPDATE
   TO authenticated
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Admins can update any resident" ON residents;
 CREATE POLICY "Admins can update any resident"
   ON residents FOR UPDATE
   TO authenticated
@@ -344,11 +368,13 @@ CREATE POLICY "Admins can update any resident"
 -- Políticas para COMPANIES
 -- ----------------------------------------------------------------------------
 
+DROP POLICY IF EXISTS "Companies can view their own data" ON companies;
 CREATE POLICY "Companies can view their own data"
   ON companies FOR SELECT
   TO authenticated
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Admins can view all companies" ON companies;
 CREATE POLICY "Admins can view all companies"
   ON companies FOR SELECT
   TO authenticated
@@ -360,17 +386,20 @@ CREATE POLICY "Admins can view all companies"
     )
   );
 
+DROP POLICY IF EXISTS "Companies can insert their own data" ON companies;
 CREATE POLICY "Companies can insert their own data"
   ON companies FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Companies can update their own data" ON companies;
 CREATE POLICY "Companies can update their own data"
   ON companies FOR UPDATE
   TO authenticated
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Admins can update any company" ON companies;
 CREATE POLICY "Admins can update any company"
   ON companies FOR UPDATE
   TO authenticated
@@ -386,11 +415,13 @@ CREATE POLICY "Admins can update any company"
 -- Políticas para COMPANY_PROJECTS
 -- ----------------------------------------------------------------------------
 
+DROP POLICY IF EXISTS "Companies can view their own projects" ON company_projects;
 CREATE POLICY "Companies can view their own projects"
   ON company_projects FOR SELECT
   TO authenticated
   USING (auth.uid() = company_id);
 
+DROP POLICY IF EXISTS "Admins can view all company projects" ON company_projects;
 CREATE POLICY "Admins can view all company projects"
   ON company_projects FOR SELECT
   TO authenticated
@@ -402,6 +433,7 @@ CREATE POLICY "Admins can view all company projects"
     )
   );
 
+DROP POLICY IF EXISTS "Only admins can assign projects to companies" ON company_projects;
 CREATE POLICY "Only admins can assign projects to companies"
   ON company_projects FOR INSERT
   TO authenticated
@@ -413,6 +445,7 @@ CREATE POLICY "Only admins can assign projects to companies"
     )
   );
 
+DROP POLICY IF EXISTS "Only admins can remove project assignments" ON company_projects;
 CREATE POLICY "Only admins can remove project assignments"
   ON company_projects FOR DELETE
   TO authenticated
@@ -428,11 +461,13 @@ CREATE POLICY "Only admins can remove project assignments"
 -- Políticas para ADMINISTRATORS
 -- ----------------------------------------------------------------------------
 
+DROP POLICY IF EXISTS "Admins can view their own data" ON administrators;
 CREATE POLICY "Admins can view their own data"
   ON administrators FOR SELECT
   TO authenticated
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Admins can view all administrators" ON administrators;
 CREATE POLICY "Admins can view all administrators"
   ON administrators FOR SELECT
   TO authenticated
@@ -444,11 +479,13 @@ CREATE POLICY "Admins can view all administrators"
     )
   );
 
+DROP POLICY IF EXISTS "Admins can insert their own data" ON administrators;
 CREATE POLICY "Admins can insert their own data"
   ON administrators FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Admins can update their own data" ON administrators;
 CREATE POLICY "Admins can update their own data"
   ON administrators FOR UPDATE
   TO authenticated
