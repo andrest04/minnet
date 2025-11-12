@@ -14,6 +14,9 @@ import {
   Phone,
   Target,
   Calendar,
+  HeartHandshake,
+  ShieldAlert,
+  Users,
 } from "lucide-react";
 import { useAuthenticatedUser } from "@/lib/hooks/useAuthenticatedUser";
 import {
@@ -25,6 +28,16 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { toast } from "sonner";
 
 interface Profile {
   id: string;
@@ -39,56 +52,85 @@ interface Profile {
   user_type: string;
 }
 
+interface KpiData {
+  comunidades_monitoreadas: number;
+  promedio_confianza_icsm: number;
+  riesgo_social_rcp: "Alto" | "Medio" | "Bajo";
+  alertas_activas: number;
+}
+
+interface ProjectMetrics {
+  project_id: string;
+  project_name: string;
+  icsm: number;
+  ivc: number;
+  nap: number;
+  iic: number;
+  rcp: "Alto" | "Medio" | "Bajo";
+}
+
+interface MetricsData {
+  kpis: KpiData;
+  tableData: ProjectMetrics[];
+  total_residents: number;
+}
+
 export default function EmpresaPage() {
   const router = useRouter();
   const { checkAuth } = useAuthenticatedUser();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [metrics, setMetrics] = useState<MetricsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = useCallback(async () => {
+  const fetchProfileAndMetrics = useCallback(async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch("/api/profile");
-      const data = await response.json();
+      const profileResponse = await fetch("/api/profile");
+      const profileData = await profileResponse.json();
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          router.push("/login");
-          return;
-        }
-        throw new Error(data.error || "Error al cargar perfil");
+      if (!profileResponse.ok) {
+        if (profileResponse.status === 401) router.push("/login");
+        return;
       }
 
-      if (data.success && data.profile) {
-        // Verify user is company (API returns 'empresa' for backward compatibility)
-        if (data.profile.user_type !== "empresa") {
-          // Redirect based on user type
-          const routeMap: Record<string, string> = {
-            poblador: "/poblador",
-            admin: "/admin",
-          };
-          router.push(routeMap[data.profile.user_type] || "/");
+      if (profileData.success && profileData.profile) {
+        if (profileData.profile.user_type !== "empresa") {
+          const routeMap: Record<string, string> = { poblador: "/poblador", admin: "/admin" };
+          router.push(routeMap[profileData.profile.user_type] || "/");
           return;
         }
 
-        setProfile(data.profile);
+        setProfile(profileData.profile);
+
+        if (profileData.profile.validation_status === "approved") {
+          const metricsResponse = await fetch("/api/empresa/metrics");
+          const metricsData = await metricsResponse.json();
+
+          if (metricsData.success) {
+            setMetrics(metricsData.data);
+          } else {
+            console.error("Error al cargar métricas:", metricsData.error);
+            toast.error("No se pudieron cargar los indicadores");
+          }
+        }
       }
     } catch (error) {
-      console.error("Error al cargar perfil:", error);
+      console.error("Error al cargar datos:", error);
     } finally {
       setIsLoading(false);
     }
   }, [router]);
 
-  const checkAuthAndLoadProfile = useCallback(async () => {
+  const checkAuthAndLoadData = useCallback(async () => {
     const user = await checkAuth();
     if (user) {
-      await fetchProfile();
+      await fetchProfileAndMetrics();
     }
-  }, [checkAuth, fetchProfile]);
+  }, [checkAuth, fetchProfileAndMetrics]);
 
   useEffect(() => {
-    checkAuthAndLoadProfile();
-  }, [checkAuthAndLoadProfile]);
+    checkAuthAndLoadData();
+  }, [checkAuthAndLoadData]);
 
   if (isLoading) {
     return (
@@ -284,7 +326,7 @@ export default function EmpresaPage() {
         </CardContent>
       </Card>
 
-      {!isPending && !isRejected && (
+      {profile?.validation_status === 'approved' && (
         <Card className="border-border">
           <CardHeader>
             <CardTitle>Indicadores y Reportes</CardTitle>
@@ -293,21 +335,123 @@ export default function EmpresaPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="rounded-full bg-muted p-4 mb-4">
-                <BarChart3 className="h-8 w-8 text-muted-foreground" />
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-3 text-muted-foreground">Cargando indicadores...</p>
               </div>
-              <h3 className="text-base font-semibold text-foreground mb-2">
-                No hay indicadores disponibles
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-md">
-                Esta sección mostrará los indicadores estratégicos de las
-                comunidades asociadas a tus proyectos asignados.
-              </p>
-              <p className="text-xs text-muted-foreground mt-2 bg-blue-50 px-3 py-2 rounded-md border border-blue-100">
-                El sistema está en fase de recolección de datos.
-              </p>
-            </div>
+            ) : !metrics || metrics.total_residents === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="rounded-full bg-muted p-4 mb-4">
+                  <BarChart3 className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-base font-semibold text-foreground mb-2">
+                  No hay indicadores disponibles
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-md">
+                  Aún no hay suficientes datos de pobladores registrados en tus
+                  proyectos para calcular los indicadores.
+                </p>
+                <p className="text-xs text-muted-foreground mt-2 bg-blue-50 px-3 py-2 rounded-md border border-blue-100">
+                  El sistema está en fase de recolección de datos.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <StatCard
+                    title="Pobladores"
+                    value={metrics.total_residents}
+                    description="Participantes en tus proyectos"
+                    icon={Users}
+                  />
+                  <StatCard
+                    title="Confianza (ICSM)"
+                    value={`${metrics.kpis.promedio_confianza_icsm.toFixed(1)} / 100`}
+                    description="Índice de Confianza Social"
+                    icon={HeartHandshake}
+                  />
+                  <StatCard
+                    title="Riesgo (RCP)"
+                    value={metrics.kpis.riesgo_social_rcp}
+                    description="Riesgo de Conflicto Potencial"
+                    icon={ShieldAlert}
+                    className={
+                      metrics.kpis.riesgo_social_rcp === 'Alto' ? 'border-destructive' :
+                      metrics.kpis.riesgo_social_rcp === 'Medio' ? 'border-amber-400' :
+                      'border-border'
+                    }
+                  />
+                  <StatCard
+                    title="Proyectos"
+                    value={metrics.kpis.comunidades_monitoreadas}
+                    description="Proyectos asignados"
+                    icon={Building2}
+                  />
+                </div>
+
+                <div className="mt-8">
+                  <h4 className="text-lg font-semibold text-foreground mb-4">
+                    Resumen por Proyecto
+                  </h4>
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Proyecto</TableHead>
+                          <TableHead className="text-right">Confianza (ICSM)</TableHead>
+                          <TableHead className="text-right">Vulnerabilidad (IVC)</TableHead>
+                          <TableHead className="text-right">Participación (NAP)</TableHead>
+                          <TableHead className="text-right">Info. (IIC)</TableHead>
+                          <TableHead className="text-center">Riesgo (RCP)</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {metrics.tableData.map((proj) => (
+                          <TableRow key={proj.project_id}>
+                            <TableCell className="font-medium">
+                              {proj.project_name}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {proj.icsm.toFixed(1)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {proj.ivc.toFixed(1)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {proj.nap.toFixed(1)}%
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {proj.iic.toFixed(1)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge
+                                variant={
+                                  proj.rcp === "Alto"
+                                    ? "destructive"
+                                    : proj.rcp === "Medio"
+                                    ? "secondary"
+                                    : "default"
+                                }
+                                className={
+                                  proj.rcp === "Medio"
+                                    ? "bg-amber-100 text-amber-900 hover:bg-amber-200"
+                                    : proj.rcp === "Bajo"
+                                    ? "bg-green-100 text-green-900 hover:bg-green-200"
+                                    : ""
+                                }
+                              >
+                                {proj.rcp}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       )}

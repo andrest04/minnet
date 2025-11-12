@@ -76,7 +76,9 @@ export async function POST(request: NextRequest) {
         !age_range ||
         !education_level ||
         !gender ||
-        !profession
+        !profession ||
+        !profileData.employment_status ||
+        !profileData.trust_level
       ) {
         return NextResponse.json(
           { success: false, error: "Faltan campos obligatorios" },
@@ -289,6 +291,8 @@ export async function POST(request: NextRequest) {
         education_level: profileData.education_level,
         gender: profileData.gender,
         profession: profileData.profession,
+        employment_status: profileData.employment_status,
+        trust_level: profileData.trust_level,
         junta_link: profileData.junta_link,
         junta_relationship: profileData.junta_relationship,
         topics_interest: profileData.topics_interest || [],

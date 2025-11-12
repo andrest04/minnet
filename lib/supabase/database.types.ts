@@ -203,6 +203,7 @@ export type Database = {
           age_range: string
           created_at: string | null
           education_level: string
+          employment_status: string | null
           gender: string
           id: string
           junta_link: string | null
@@ -213,12 +214,14 @@ export type Database = {
           project_id: string
           region_id: string
           topics_interest: string[]
+          trust_level: string | null
           updated_at: string | null
         }
         Insert: {
           age_range: string
           created_at?: string | null
           education_level: string
+          employment_status?: string | null
           gender: string
           id: string
           junta_link?: string | null
@@ -229,12 +232,14 @@ export type Database = {
           project_id: string
           region_id: string
           topics_interest?: string[]
+          trust_level?: string | null
           updated_at?: string | null
         }
         Update: {
           age_range?: string
           created_at?: string | null
           education_level?: string
+          employment_status?: string | null
           gender?: string
           id?: string
           junta_link?: string | null
@@ -245,6 +250,7 @@ export type Database = {
           project_id?: string
           region_id?: string
           topics_interest?: string[]
+          trust_level?: string | null
           updated_at?: string | null
         }
         Relationships: [

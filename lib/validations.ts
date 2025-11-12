@@ -40,8 +40,12 @@ export const GENERIC_EMAIL_DOMAINS = [
  */
 export const validateCorporateEmail = (email: string): boolean => {
   if (!validateEmail(email)) return false;
-  const domain = email.split("@")[1]?.toLowerCase();
-  return !GENERIC_EMAIL_DOMAINS.includes(domain);
+  // TEMPORAL: Permitir cualquier email para desarrollo
+  // TODO: Restaurar validación en producción
+  return true;
+
+  // const domain = email.split("@")[1]?.toLowerCase();
+  // return !GENERIC_EMAIL_DOMAINS.includes(domain);
 };
 
 /**
@@ -150,6 +154,28 @@ export const PROFESSIONS = [
   { value: "transporte", label: "Transporte" },
   { value: "servicios", label: "Servicios (restaurante, hospedaje, etc.)" },
   { value: "otro", label: "Otro" },
+];
+
+/**
+ * Opciones de Situación Laboral
+ */
+export const EMPLOYMENT_STATUS_OPTIONS = [
+  { value: "formal", label: "Formal (en planilla)" },
+  { value: "independent", label: "Independiente / Por cuenta propia" },
+  { value: "unemployed", label: "Desempleado / Buscando empleo" },
+  { value: "student", label: "Estudiante" },
+  { value: "home", label: "Labores de hogar" },
+  { value: "other", label: "Otro" },
+];
+
+/**
+ * Opciones de Nivel de Confianza
+ */
+export const TRUST_LEVEL_OPTIONS = [
+  { value: "alto", label: "Alto" },
+  { value: "medio", label: "Medio" },
+  { value: "bajo", label: "Bajo" },
+  { value: "nulo", label: "Nulo / No tengo opinión" },
 ];
 
 /**

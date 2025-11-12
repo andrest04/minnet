@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CustomSelect as Select } from "@/components/ui/select";
 import { CustomCheckbox as Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { PROFESSIONS, JUNTA_RELATIONSHIPS } from "@/lib/validations";
+import { PROFESSIONS, JUNTA_RELATIONSHIPS, EMPLOYMENT_STATUS_OPTIONS } from "@/lib/validations";
 import type { PobladorRegistrationData } from "@/lib/types";
 
 interface SelectOption {
@@ -36,6 +36,8 @@ export const Step2 = ({ formData, updateFormData, onNext }: Step2Props) => {
 
     if (!formData.profession)
       newErrors.profession = "Selecciona tu profesión u oficio";
+    if (!formData.employment_status)
+      newErrors.employment_status = "Selecciona tu situación laboral";
     if (!formData.junta_link)
       newErrors.junta_link = "Selecciona una opción";
     if (formData.junta_link === "familiar" && !formData.junta_relationship)
@@ -62,6 +64,15 @@ export const Step2 = ({ formData, updateFormData, onNext }: Step2Props) => {
         onChange={(value) => updateFormData({ profession: value })}
         options={PROFESSIONS}
         error={errors.profession}
+      />
+
+      <Select
+        label="Situación Laboral"
+        placeholder="Selecciona tu situación actual"
+        value={formData.employment_status || ""}
+        onChange={(value) => updateFormData({ employment_status: value })}
+        options={EMPLOYMENT_STATUS_OPTIONS}
+        error={errors.employment_status}
       />
 
       <Select

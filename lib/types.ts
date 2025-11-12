@@ -93,12 +93,14 @@ export interface ResidentRegistrationStep2 {
   junta_link: "member" | "familiar" | "none";
   junta_relationship?: string;
   consent: boolean;
+  employment_status: string;
 }
 
 export interface ResidentRegistrationStep3 {
   topics_interest: string[];
   knowledge_level: string;
   participation_willingness: string[];
+  trust_level: string;
 }
 
 export interface ResidentRegistrationData

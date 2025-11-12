@@ -8,6 +8,7 @@ import {
   TOPICS_OF_INTEREST,
   KNOWLEDGE_LEVELS,
   PARTICIPATION_OPTIONS,
+  TRUST_LEVEL_OPTIONS,
 } from "@/lib/validations";
 import type { PobladorRegistrationData } from "@/lib/types";
 
@@ -44,6 +45,9 @@ export const Step3 = ({ formData, updateFormData, onNext }: Step3Props) => {
     }
     if (!formData.knowledge_level) {
       newErrors.knowledge_level = "Selecciona tu nivel de conocimiento";
+    }
+    if (!formData.trust_level) {
+      newErrors.trust_level = "Selecciona tu nivel de confianza";
     }
     if (
       !formData.participation_willingness ||
@@ -104,6 +108,15 @@ export const Step3 = ({ formData, updateFormData, onNext }: Step3Props) => {
         onChange={(value) => updateFormData({ knowledge_level: value })}
         options={KNOWLEDGE_LEVELS}
         error={errors.knowledge_level}
+      />
+
+      <Select
+        label="¿Cuál es tu nivel de confianza en el proyecto?"
+        placeholder="Selecciona tu nivel de confianza"
+        value={formData.trust_level || ""}
+        onChange={(value) => updateFormData({ trust_level: value })}
+        options={TRUST_LEVEL_OPTIONS}
+        error={errors.trust_level}
       />
 
       <div>
