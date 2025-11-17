@@ -143,6 +143,13 @@ export default function LoginPage() {
                   Mantener sesión iniciada
                 </Label>
               </div>
+              <button
+                type="button"
+                onClick={() => router.push("/forgot-password")}
+                className="text-sm text-primary font-semibold hover:underline"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
