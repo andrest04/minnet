@@ -123,12 +123,7 @@ export interface CompanyRegistrationData {
   consultation_frequency?: string;
 }
 
-// Alias para compatibilidad con código existente
-export type PobladorRegistrationStep1 = ResidentRegistrationStep1;
-export type PobladorRegistrationStep2 = ResidentRegistrationStep2;
-export type PobladorRegistrationStep3 = ResidentRegistrationStep3;
-export type PobladorRegistrationData = ResidentRegistrationData;
-export type EmpresaRegistrationData = CompanyRegistrationData;
+// Legacy aliases removed - use ResidentRegistrationData and CompanyRegistrationData directly
 
 // ============================================================================
 // TIPOS PARA RESPUESTAS DE API

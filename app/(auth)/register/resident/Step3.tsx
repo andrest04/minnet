@@ -10,11 +10,11 @@ import {
   PARTICIPATION_OPTIONS,
   TRUST_LEVEL_OPTIONS,
 } from "@/lib/validations";
-import type { PobladorRegistrationData } from "@/lib/types";
+import type { ResidentRegistrationData } from "@/lib/types";
 
 interface Step3Props {
-  formData: Partial<PobladorRegistrationData>;
-  updateFormData: (data: Partial<PobladorRegistrationData>) => void;
+  formData: Partial<ResidentRegistrationData>;
+  updateFormData: (data: Partial<ResidentRegistrationData>) => void;
   onNext: () => void;
 }
 

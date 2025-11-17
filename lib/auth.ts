@@ -2,21 +2,14 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
 
-// Type mappings for backward compatibility
-type LegacyUserType = 'poblador' | 'empresa' | 'admin'
-type NewUserType = 'resident' | 'company' | 'administrator'
+// Standardized user types
+type UserType = 'resident' | 'company' | 'administrator'
 
-const LEGACY_TO_NEW_MAP: Record<LegacyUserType, NewUserType> = {
-  poblador: 'resident',
-  empresa: 'company',
-  admin: 'administrator',
-}
-
-
-const NEW_TYPE_TO_ROUTE: Record<NewUserType, string> = {
-  resident: '/poblador',
-  company: '/empresa',
-  administrator: '/admin',
+// Route mappings for each user type
+const USER_TYPE_TO_ROUTE: Record<UserType, string> = {
+  resident: '/resident',
+  company: '/company',
+  administrator: '/administrator',
 }
 
 /**
@@ -46,14 +39,14 @@ export async function getCurrentUser(): Promise<User | null> {
 }
 
 /**
- * Verify user has specific role (supports both legacy and new user types)
+ * Verify user has specific role
  * @param user - Authenticated user
- * @param userType - Required user type (accepts both 'poblador' and 'resident' etc.)
+ * @param userType - Required user type ('resident', 'company', or 'administrator')
  * @returns boolean
  */
 export async function hasUserType(
   user: User,
-  userType: LegacyUserType | NewUserType
+  userType: UserType
 ): Promise<boolean> {
   const supabase = await createClient()
 
@@ -61,25 +54,20 @@ export async function hasUserType(
     .from('profiles')
     .select('user_type')
     .eq('id', user.id)
-    .single<{ user_type: NewUserType }>()
+    .single<{ user_type: UserType }>()
 
   if (!profile) return false
 
-  // Convert legacy type to new type if needed
-  const normalizedUserType = userType in LEGACY_TO_NEW_MAP
-    ? LEGACY_TO_NEW_MAP[userType as LegacyUserType]
-    : userType
-
-  return profile.user_type === normalizedUserType
+  return profile.user_type === userType
 }
 
 /**
  * Require specific user type - redirects if not matching
- * @param userType - Required user type (accepts both legacy and new types)
+ * @param userType - Required user type ('resident', 'company', or 'administrator')
  * @returns User object
  */
 export async function requireUserType(
-  userType: LegacyUserType | NewUserType
+  userType: UserType
 ): Promise<User> {
   const user = await requireAuth()
   const hasCorrectType = await hasUserType(user, userType)
@@ -91,12 +79,12 @@ export async function requireUserType(
       .from('profiles')
       .select('user_type')
       .eq('id', user.id)
-      .single<{ user_type: NewUserType }>()
+      .single<{ user_type: UserType }>()
 
     const actualType = profile?.user_type
 
-    if (actualType && actualType in NEW_TYPE_TO_ROUTE) {
-      redirect(NEW_TYPE_TO_ROUTE[actualType])
+    if (actualType && actualType in USER_TYPE_TO_ROUTE) {
+      redirect(USER_TYPE_TO_ROUTE[actualType])
     } else {
       redirect('/login')
     }
@@ -108,16 +96,16 @@ export async function requireUserType(
 /**
  * Get user's profile type
  * @param user - Authenticated user
- * @returns User type (new format: 'resident', 'company', 'administrator')
+ * @returns User type ('resident', 'company', or 'administrator')
  */
-export async function getUserType(user: User): Promise<NewUserType | null> {
+export async function getUserType(user: User): Promise<UserType | null> {
   const supabase = await createClient()
 
   const { data: profile } = await supabase
     .from('profiles')
     .select('user_type')
     .eq('id', user.id)
-    .single<{ user_type: NewUserType }>()
+    .single<{ user_type: UserType }>()
 
   return profile?.user_type || null
 }

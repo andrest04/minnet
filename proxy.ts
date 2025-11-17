@@ -36,7 +36,7 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Define public routes that don't require authentication
-  const publicRoutes = ["/login", "/verify-otp", "/register", "/", "/admin/auth", "/forgot-password", "/update-password"];
+  const publicRoutes = ["/login", "/verify-otp", "/register", "/", "/administrator/auth", "/forgot-password", "/update-password"];
 
   const isPublicRoute = publicRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
@@ -62,8 +62,7 @@ export async function proxy(request: NextRequest) {
 
   // Add header for protected routes
   const { pathname } = request.nextUrl;
-  if (pathname.startsWith('/resident') || pathname.startsWith('/company') || pathname.startsWith('/administrator') ||
-      pathname.startsWith('/poblador') || pathname.startsWith('/empresa') || pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/resident') || pathname.startsWith('/company') || pathname.startsWith('/administrator')) {
     supabaseResponse.headers.set('x-protected-route', 'true');
   }
 

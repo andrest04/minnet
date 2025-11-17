@@ -26,8 +26,8 @@ function RegisterContent() {
     }
   }, [identifier, type, router]);
 
-  const handleUserTypeSelection = (userType: "poblador" | "empresa") => {
-    if (userType === "empresa" && type === "email") {
+  const handleUserTypeSelection = (userType: "resident" | "company") => {
+    if (userType === "company" && type === "email") {
       if (!validateCorporateEmail(identifier || "")) {
         toast.error(
           "Para registrarte como empresa, debes usar un email corporativo (no Gmail, Hotmail, etc.)"
@@ -36,7 +36,7 @@ function RegisterContent() {
       }
     }
 
-    if (userType === "empresa" && type === "phone") {
+    if (userType === "company" && type === "phone") {
       toast.error(
         "Para registrarte como empresa, debes usar un email corporativo."
       );
@@ -65,7 +65,7 @@ function RegisterContent() {
         <CardContent className="space-y-6">
           <div className="space-y-4">
             <button
-              onClick={() => handleUserTypeSelection("poblador")}
+              onClick={() => handleUserTypeSelection("resident")}
               className="w-full p-6 rounded-xl border-2 border-border hover:border-secondary transition-all duration-200 text-left group hover:bg-secondary/5"
             >
               <div className="flex items-start gap-4">
@@ -85,7 +85,7 @@ function RegisterContent() {
             </button>
 
             <button
-              onClick={() => handleUserTypeSelection("empresa")}
+              onClick={() => handleUserTypeSelection("company")}
               className="w-full p-6 rounded-xl border-2 border-border hover:border-primary transition-all duration-200 text-left group hover:bg-primary/5"
             >
               <div className="flex items-start gap-4">

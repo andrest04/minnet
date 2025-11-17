@@ -72,12 +72,12 @@ export default function LoginPage() {
       toast.success("Sesión iniciada correctamente");
 
       const redirectMap: Record<string, string> = {
-        resident: "/poblador",
-        company: "/empresa",
-        administrator: "/admin",
+        resident: "/resident",
+        company: "/company",
+        administrator: "/administrator",
       };
 
-      router.push(redirectMap[data.user_type] || "/poblador");
+      router.push(redirectMap[data.user_type] || "/resident");
     } catch (err) {
       console.error("Error al iniciar sesión:", err);
       const errorMsg = "Error de conexión. Por favor, intenta nuevamente.";

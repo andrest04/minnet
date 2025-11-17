@@ -16,7 +16,7 @@ import { Step1 } from "./Step1";
 import { Step2 } from "./Step2";
 import { Step3 } from "./Step3";
 import { Step4 } from "./Step4";
-import type { PobladorRegistrationData } from "@/lib/types";
+import type { ResidentRegistrationData } from "@/lib/types";
 import { toast } from "sonner";
 
 function RegisterPobladorContent() {
@@ -26,16 +26,16 @@ function RegisterPobladorContent() {
   const type = searchParams.get("type");
 
   const [currentStep, setCurrentStep] = useState(() => {
-    const savedStep = localStorage.getItem("poblador_registration_step");
+    const savedStep = localStorage.getItem("resident_registration_step");
     return savedStep ? parseInt(savedStep) : 0;
   });
-  const [formData, setFormData] = useState<Partial<PobladorRegistrationData>>(
+  const [formData, setFormData] = useState<Partial<ResidentRegistrationData>>(
     () => {
       const baseData = {
         identifier: identifier || "",
         identifier_type: (type as "email" | "phone") || "email",
       };
-      const savedData = localStorage.getItem("poblador_registration");
+      const savedData = localStorage.getItem("resident_registration");
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
@@ -52,9 +52,9 @@ function RegisterPobladorContent() {
   // Guardar datos en localStorage cuando cambien
   useEffect(() => {
     if (formData.identifier) {
-      localStorage.setItem("poblador_registration", JSON.stringify(formData));
+      localStorage.setItem("resident_registration", JSON.stringify(formData));
       localStorage.setItem(
-        "poblador_registration_step",
+        "resident_registration_step",
         currentStep.toString()
       );
     }
@@ -68,7 +68,7 @@ function RegisterPobladorContent() {
 
   const steps = ["Datos básicos", "Información", "Preferencias", "Contraseña"];
 
-  const updateFormData = (data: Partial<PobladorRegistrationData>) => {
+  const updateFormData = (data: Partial<ResidentRegistrationData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
   };
 
@@ -96,7 +96,7 @@ function RegisterPobladorContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...finalFormData,
-          user_type: "poblador",
+          user_type: "resident",
           consent_version: "1.0",
           consent_date: new Date().toISOString(),
         }),
@@ -112,14 +112,14 @@ function RegisterPobladorContent() {
       }
 
       localStorage.setItem("user_id", data.user_id);
-      localStorage.setItem("user_type", "poblador");
+      localStorage.setItem("user_type", "resident");
 
       // Limpiar datos del formulario guardados
-      localStorage.removeItem("poblador_registration");
-      localStorage.removeItem("poblador_registration_step");
+      localStorage.removeItem("resident_registration");
+      localStorage.removeItem("resident_registration_step");
 
       toast.success("Registro exitoso. Redirigiendo...");
-      router.push("/poblador");
+      router.push("/resident");
     } catch (error) {
       console.error("Error al registrar:", error);
       toast.error("Error de conexión. Intenta nuevamente.");

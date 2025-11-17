@@ -5,7 +5,7 @@ import { CustomSelect as Select } from "@/components/ui/select";
 import { CustomCheckbox as Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { PROFESSIONS, JUNTA_RELATIONSHIPS, EMPLOYMENT_STATUS_OPTIONS } from "@/lib/validations";
-import type { PobladorRegistrationData } from "@/lib/types";
+import type { ResidentRegistrationData } from "@/lib/types";
 
 interface SelectOption {
   value: string;
@@ -13,8 +13,8 @@ interface SelectOption {
 }
 
 interface Step2Props {
-  formData: Partial<PobladorRegistrationData>;
-  updateFormData: (data: Partial<PobladorRegistrationData>) => void;
+  formData: Partial<ResidentRegistrationData>;
+  updateFormData: (data: Partial<ResidentRegistrationData>) => void;
   onNext: () => void;
 }
 

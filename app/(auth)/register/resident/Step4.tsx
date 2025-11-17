@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { validatePassword } from "@/lib/validations";
-import type { PobladorRegistrationData } from "@/lib/types";
+import type { ResidentRegistrationData } from "@/lib/types";
 
 interface Step4Props {
-  updateFormData: (data: Partial<PobladorRegistrationData>) => void;
+  updateFormData: (data: Partial<ResidentRegistrationData>) => void;
   onSubmit: (password?: string) => void;
   isSubmitting: boolean;
 }

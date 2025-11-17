@@ -25,7 +25,7 @@ import {
   validateCorporateEmail,
   validatePassword,
 } from "@/lib/validations";
-import type { EmpresaRegistrationData } from "@/lib/types";
+import type { CompanyRegistrationData } from "@/lib/types";
 import { toast } from "sonner";
 
 function RegisterEmpresaContent() {
@@ -35,7 +35,7 @@ function RegisterEmpresaContent() {
   const type = searchParams.get("type");
 
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
-  const [formData, setFormData] = useState<Partial<EmpresaRegistrationData>>({
+  const [formData, setFormData] = useState<Partial<CompanyRegistrationData>>({
     identifier: identifier || "",
     assigned_projects: [],
   });
@@ -48,20 +48,20 @@ function RegisterEmpresaContent() {
 
   // Cargar datos guardados de localStorage
   useEffect(() => {
-    const savedData = localStorage.getItem("empresa_registration");
+    const savedData = localStorage.getItem("company_registration");
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
         setFormData((prev) => ({ ...prev, ...parsed }));
         // Restaurar contraseñas y otros campos si existen
         const savedPassword = localStorage.getItem(
-          "empresa_registration_password"
+          "company_registration_password"
         );
         if (savedPassword) {
           setPassword(savedPassword);
         }
         const savedConsent = localStorage.getItem(
-          "empresa_registration_consent"
+          "company_registration_consent"
         );
         if (savedConsent) {
           setConsent(savedConsent === "true");
@@ -79,11 +79,11 @@ function RegisterEmpresaContent() {
   // Guardar datos en localStorage cuando cambien
   useEffect(() => {
     if (formData.identifier) {
-      localStorage.setItem("empresa_registration", JSON.stringify(formData));
+      localStorage.setItem("company_registration", JSON.stringify(formData));
       if (password) {
-        localStorage.setItem("empresa_registration_password", password);
+        localStorage.setItem("company_registration_password", password);
       }
-      localStorage.setItem("empresa_registration_consent", consent.toString());
+      localStorage.setItem("company_registration_consent", consent.toString());
     }
   }, [formData, password, consent]);
 
@@ -172,7 +172,7 @@ function RegisterEmpresaContent() {
           ...formData,
           password,
           identifier_type: type,
-          user_type: "empresa",
+          user_type: "company",
           consent_version: "1.0",
           consent_date: new Date().toISOString(),
           consent: consent,
@@ -191,14 +191,14 @@ function RegisterEmpresaContent() {
       // La sesión se gestiona automáticamente con cookies HTTP-only de Supabase
 
       // Limpiar datos del formulario guardados
-      localStorage.removeItem("empresa_registration");
-      localStorage.removeItem("empresa_registration_password");
-      localStorage.removeItem("empresa_registration_consent");
+      localStorage.removeItem("company_registration");
+      localStorage.removeItem("company_registration_password");
+      localStorage.removeItem("company_registration_consent");
 
       toast.success(
         "Registro exitoso. Tu cuenta será revisada por un administrador."
       );
-      router.push("/empresa");
+      router.push("/company");
     } catch (error) {
       console.error("Error al registrar:", error);
       toast.error("Error de conexión. Intenta nuevamente.");

@@ -6,8 +6,8 @@ import { Users, Building2, Clock, CheckCircle2, Loader2 } from 'lucide-react';
 import { useAuthenticatedUser } from '@/lib/hooks/useAuthenticatedUser';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { StatCard } from '@/components/dashboard/StatCard';
-import CompanyFilters from '@/components/admin/CompanyFilters';
-import CompanyCard from '@/components/admin/CompanyCard';
+import CompanyFilters from '@/components/administrator/CompanyFilters';
+import CompanyCard from '@/components/administrator/CompanyCard';
 import { toast } from 'sonner';
 
 interface Company {

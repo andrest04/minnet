@@ -2,13 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import type { APIResponse } from '@/lib/types';
 
-// Map new user types to old ones for backward compatibility in responses
-const USER_TYPE_LEGACY_MAP: Record<string, string> = {
-  resident: 'poblador',
-  company: 'empresa',
-  administrator: 'admin',
-};
-
 export async function GET() {
   try {
     const supabase = await createClient();
@@ -43,8 +36,6 @@ export async function GET() {
 
     let profileData: Record<string, unknown> = {
       ...profile,
-      // Return legacy user_type for backward compatibility
-      user_type: USER_TYPE_LEGACY_MAP[profile.user_type] || profile.user_type,
     };
 
     let project = null;

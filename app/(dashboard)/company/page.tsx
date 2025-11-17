@@ -94,8 +94,8 @@ export default function EmpresaPage() {
       }
 
       if (profileData.success && profileData.profile) {
-        if (profileData.profile.user_type !== "empresa") {
-          const routeMap: Record<string, string> = { poblador: "/poblador", admin: "/admin" };
+        if (profileData.profile.user_type !== "company") {
+          const routeMap: Record<string, string> = { resident: "/resident", administrator: "/administrator" };
           router.push(routeMap[profileData.profile.user_type] || "/");
           return;
         }

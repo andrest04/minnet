@@ -8,11 +8,11 @@ import {
   EDUCATION_LEVELS,
   GENDER_OPTIONS,
 } from "@/lib/validations";
-import type { PobladorRegistrationData } from "@/lib/types";
+import type { ResidentRegistrationData } from "@/lib/types";
 
 interface Step1Props {
-  formData: Partial<PobladorRegistrationData>;
-  updateFormData: (data: Partial<PobladorRegistrationData>) => void;
+  formData: Partial<ResidentRegistrationData>;
+  updateFormData: (data: Partial<ResidentRegistrationData>) => void;
   onNext: () => void;
 }
 

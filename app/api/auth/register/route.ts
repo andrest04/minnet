@@ -8,15 +8,8 @@ import {
 } from "@/lib/validations";
 import type { Database } from "@/lib/supabase/database.types";
 
-// Map old user types to new ones for backward compatibility
-const USER_TYPE_MAP: Record<string, "resident" | "company" | "administrator"> = {
-  poblador: "resident",
-  empresa: "company",
-  admin: "administrator",
-  resident: "resident",
-  company: "company",
-  administrator: "administrator",
-};
+// Allowed user types
+const ALLOWED_USER_TYPES = ["resident", "company", "administrator"] as const;
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,15 +18,15 @@ export async function POST(request: NextRequest) {
     const { user_type, identifier, identifier_type, password, ...profileData } =
       body;
 
-    // Map old user type to new one
-    const mappedUserType = USER_TYPE_MAP[user_type];
-
-    if (!mappedUserType) {
+    // Validate user type
+    if (!ALLOWED_USER_TYPES.includes(user_type)) {
       return NextResponse.json(
         { success: false, error: "Tipo de usuario inválido" },
         { status: 400 }
       );
     }
+
+    const mappedUserType = user_type;
 
     if (!identifier) {
       return NextResponse.json(

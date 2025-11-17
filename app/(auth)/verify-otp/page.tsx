@@ -155,11 +155,11 @@ function VerifyOTPContent() {
       if (data.user_exists) {
         // Redirigir según el tipo de usuario
         if (data.user_type === "administrator") {
-          router.push("/admin");
+          router.push("/administrator");
         } else if (data.user_type === "company") {
-          router.push("/empresa");
+          router.push("/company");
         } else {
-          router.push("/poblador");
+          router.push("/resident");
         }
       } else {
         // Si no existe, redirigir al registro

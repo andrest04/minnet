@@ -82,7 +82,7 @@ export default function ProfilePage() {
 
     let fieldsToUpdate: string[] = [];
 
-    if (userType === 'poblador' || userType === 'resident') {
+    if (userType === 'resident') {
       fieldsToUpdate = [
         'age_range',
         'education_level',
@@ -96,7 +96,7 @@ export default function ProfilePage() {
         'knowledge_level',
         'participation_willingness',
       ];
-    } else if (userType === 'empresa' || userType === 'company') {
+    } else if (userType === 'company') {
       fieldsToUpdate = [
         'company_name',
         'position',
@@ -104,7 +104,7 @@ export default function ProfilePage() {
         'use_objective',
         'consultation_frequency',
       ];
-    } else if (userType === 'admin' || userType === 'administrator') {
+    } else if (userType === 'administrator') {
       fieldsToUpdate = ['full_name'];
     }
 
@@ -163,9 +163,9 @@ export default function ProfilePage() {
   }
 
   const getTitle = () => {
-    if (userType === 'poblador' || userType === 'resident') return 'Perfil de Poblador';
-    if (userType === 'empresa' || userType === 'company') return 'Perfil de Empresa';
-    if (userType === 'admin' || userType === 'administrator') return 'Perfil de Administrador';
+    if (userType === 'resident') return 'Perfil de Poblador';
+    if (userType === 'company') return 'Perfil de Empresa';
+    if (userType === 'administrator') return 'Perfil de Administrador';
     return 'Mi Perfil';
   };
 
@@ -195,7 +195,7 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {(userType === 'poblador' || userType === 'resident') && (
+            {userType === 'resident' && (
               <ResidentProfileForm
                 formData={formData}
                 onChange={handleFieldChange}
@@ -205,7 +205,7 @@ export default function ProfilePage() {
               />
             )}
 
-            {(userType === 'empresa' || userType === 'company') && (
+            {userType === 'company' && (
               <CompanyProfileForm
                 formData={formData}
                 onChange={handleFieldChange}
@@ -214,7 +214,7 @@ export default function ProfilePage() {
               />
             )}
 
-            {(userType === 'admin' || userType === 'administrator') && (
+            {userType === 'administrator' && (
               <AdministratorProfileForm
                 formData={formData}
                 onChange={handleFieldChange}

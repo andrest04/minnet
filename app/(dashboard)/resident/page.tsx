@@ -71,8 +71,8 @@ export default function PobladorPage() {
       }
 
       if (data.success && data.profile) {
-        // Verify user is poblador
-        if (data.profile.user_type !== "poblador") {
+        // Verify user is resident
+        if (data.profile.user_type !== "resident") {
           router.push(`/${data.profile.user_type}`);
           return;
         }
