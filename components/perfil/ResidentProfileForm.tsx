@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+import { CustomSelect } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   AGE_RANGES,
@@ -120,43 +120,43 @@ export function ResidentProfileForm({
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground">Información Personal</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select
+          <CustomSelect
             label="Rango de Edad"
             options={AGE_RANGES}
             value={(formData.age_range as string) || ''}
-            onValueChange={(value) => onChange('age_range', value)}
+            onChange={(value) => onChange('age_range', value)}
             disabled={disabled || isLoading}
           />
 
-          <Select
+          <CustomSelect
             label="Género"
             options={GENDER_OPTIONS}
             value={(formData.gender as string) || ''}
-            onValueChange={(value) => onChange('gender', value)}
+            onChange={(value) => onChange('gender', value)}
             disabled={disabled || isLoading}
           />
 
-          <Select
+          <CustomSelect
             label="Nivel Educativo"
             options={EDUCATION_LEVELS}
             value={(formData.education_level as string) || ''}
-            onValueChange={(value) => onChange('education_level', value)}
+            onChange={(value) => onChange('education_level', value)}
             disabled={disabled || isLoading}
           />
 
-          <Select
+          <CustomSelect
             label="Profesión"
             options={PROFESSIONS}
             value={(formData.profession as string) || ''}
-            onValueChange={(value) => onChange('profession', value)}
+            onChange={(value) => onChange('profession', value)}
             disabled={disabled || isLoading}
           />
 
-          <Select
+          <CustomSelect
             label="Situación Laboral"
             options={EMPLOYMENT_STATUS_OPTIONS}
             value={(formData.employment_status as string) || ''}
-            onValueChange={(value) => onChange('employment_status', value)}
+            onChange={(value) => onChange('employment_status', value)}
             disabled={disabled || isLoading}
           />
         </div>
@@ -168,19 +168,19 @@ export function ResidentProfileForm({
           Información sobre el Proyecto Minero
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select
+          <CustomSelect
             label="Nivel de Confianza en el Proyecto"
             options={TRUST_LEVEL_OPTIONS}
             value={(formData.trust_level as string) || ''}
-            onValueChange={(value) => onChange('trust_level', value)}
+            onChange={(value) => onChange('trust_level', value)}
             disabled={disabled || isLoading}
           />
 
-          <Select
+          <CustomSelect
             label="Nivel de Conocimiento del Proyecto"
             options={KNOWLEDGE_LEVELS}
             value={(formData.knowledge_level as string) || ''}
-            onValueChange={(value) => onChange('knowledge_level', value)}
+            onChange={(value) => onChange('knowledge_level', value)}
             disabled={disabled || isLoading}
           />
         </div>
@@ -220,7 +220,7 @@ export function ResidentProfileForm({
           Participación Comunitaria
         </h3>
         <div className="space-y-4">
-          <Select
+          <CustomSelect
             label="¿Eres miembro o familiar de la junta directiva?"
             options={[
               { value: 'none', label: 'No' },
@@ -228,16 +228,16 @@ export function ResidentProfileForm({
               { value: 'familiar', label: 'Soy familiar de un miembro' },
             ]}
             value={(formData.junta_link as string) || 'none'}
-            onValueChange={(value) => onChange('junta_link', value)}
+            onChange={(value) => onChange('junta_link', value)}
             disabled={disabled || isLoading}
           />
 
           {formData.junta_link === 'familiar' && (
-            <Select
+            <CustomSelect
               label="Nivel de Parentesco"
               options={JUNTA_RELATIONSHIPS}
               value={(formData.junta_relationship as string) || ''}
-              onValueChange={(value) => onChange('junta_relationship', value)}
+              onChange={(value) => onChange('junta_relationship', value)}
               disabled={disabled || isLoading}
             />
           )}

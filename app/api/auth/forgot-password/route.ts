@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { identifierType, validateEmail, validatePhonePeru, cleanPhone } from "@/lib/validations";
+import { identifierType, cleanPhone } from "@/lib/validations";
 import type { APIResponse } from "@/lib/types";
 
 export async function POST(request: NextRequest) {

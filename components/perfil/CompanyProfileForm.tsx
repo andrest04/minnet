@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+import { CustomSelect } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import {
   COMPANY_POSITIONS,
@@ -113,19 +113,19 @@ export function CompanyProfileForm({
             />
           </div>
 
-          <Select
+          <CustomSelect
             label="Cargo"
             options={COMPANY_POSITIONS}
             value={(formData.position as string) || ''}
-            onValueChange={(value) => onChange('position', value)}
+            onChange={(value) => onChange('position', value)}
             disabled={disabled || isLoading}
           />
 
-          <Select
+          <CustomSelect
             label="Área Encargada"
             options={COMPANY_AREAS}
             value={(formData.responsible_area as string) || ''}
-            onValueChange={(value) => onChange('responsible_area', value)}
+            onChange={(value) => onChange('responsible_area', value)}
             disabled={disabled || isLoading}
           />
         </div>
@@ -137,19 +137,19 @@ export function CompanyProfileForm({
           Uso de la Plataforma
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select
+          <CustomSelect
             label="Objetivo de Uso"
             options={USE_OBJECTIVES}
             value={(formData.use_objective as string) || ''}
-            onValueChange={(value) => onChange('use_objective', value)}
+            onChange={(value) => onChange('use_objective', value)}
             disabled={disabled || isLoading}
           />
 
-          <Select
+          <CustomSelect
             label="Frecuencia de Consulta"
             options={CONSULTATION_FREQUENCIES}
             value={(formData.consultation_frequency as string) || ''}
-            onValueChange={(value) => onChange('consultation_frequency', value)}
+            onChange={(value) => onChange('consultation_frequency', value)}
             disabled={disabled || isLoading}
           />
         </div>

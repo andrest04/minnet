@@ -14,7 +14,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { createClient } from "@/utils/supabase/client";
-import { validatePassword } from "@/lib/validations";
 import { toast } from "sonner";
 
 export default function UpdatePasswordPage() {
