@@ -3,8 +3,15 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { LogOut, User } from 'lucide-react'
+import { LogOut, User, UserCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { createClient } from '@/utils/supabase/client'
 import { toast } from 'sonner'
 
@@ -80,27 +87,36 @@ export function DashboardHeader() {
 
         <nav className="ml-auto flex items-center gap-4">
           {userInfo && (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/5 border border-primary/10">
-              <User className="h-4 w-4 text-primary" />
-              <div className="flex flex-col">
-                <span className="text-xs font-medium text-foreground hidden sm:block">
-                  {userInfo.name}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {USER_TYPE_LABELS[userInfo.type]}
-                </span>
-              </div>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 px-3 py-1.5 h-auto hover:bg-primary/5"
+                >
+                  <User className="h-4 w-4 text-primary" />
+                  <div className="flex flex-col items-start">
+                    <span className="text-xs font-medium text-foreground hidden sm:block">
+                      {userInfo.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {USER_TYPE_LABELS[userInfo.type]}
+                    </span>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => router.push('/perfil')}>
+                  <UserCircle className="h-4 w-4 mr-2" />
+                  Mi Perfil
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Cerrar sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleSignOut}
-            className="gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Cerrar sesión</span>
-          </Button>
         </nav>
       </div>
     </header>
