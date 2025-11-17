@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { createAdminClient } from "@/utils/supabase/admin";
 
 export async function GET() {
   try {
@@ -148,68 +147,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // If rejected, delete the account completely
-    if (validation_status === "rejected") {
-      const supabaseAdmin = createAdminClient();
-
-      // Delete in correct order to respect foreign key constraints
-      // 1. Delete company_projects (has FK to companies)
-      const { error: projectsError } = await supabase
-        .from("company_projects")
-        .delete()
-        .eq("company_id", company_id);
-
-      if (projectsError) {
-        console.error("Error al eliminar proyectos de empresa:", projectsError);
-      }
-
-      // 2. Delete from companies table
-      const { error: companyError } = await supabase
-        .from("companies")
-        .delete()
-        .eq("id", company_id);
-
-      if (companyError) {
-        console.error("Error al eliminar datos de empresa:", companyError);
-        return NextResponse.json(
-          { success: false, error: "Error al eliminar datos de empresa" },
-          { status: 500 }
-        );
-      }
-
-      // 3. Delete from profiles table
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("id", company_id);
-
-      if (profileError) {
-        console.error("Error al eliminar perfil:", profileError);
-        return NextResponse.json(
-          { success: false, error: "Error al eliminar perfil" },
-          { status: 500 }
-        );
-      }
-
-      // 4. Delete from auth.users (requires admin client)
-      const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(
-        company_id
-      );
-
-      if (authError) {
-        console.error("Error al eliminar usuario de auth:", authError);
-        // Not critical - profile is already deleted
-      }
-
-      console.log(`Cuenta de empresa ${company_id} eliminada completamente por admin ${user.id}`);
-
-      return NextResponse.json({
-        success: true,
-        message: "Cuenta de empresa eliminada completamente",
-      });
-    }
-
-    // If approved, just update the validation_status
+    // Update validation_status for both approved and rejected
     const { error } = await supabase
       .from("companies")
       .update({
@@ -226,9 +164,14 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    const message =
+      validation_status === "approved"
+        ? "Empresa aprobada exitosamente"
+        : "Empresa rechazada exitosamente";
+
     return NextResponse.json({
       success: true,
-      message: "Empresa aprobada exitosamente",
+      message: message,
     });
   } catch (error) {
     console.error("Error en PATCH /api/admin/companies:", error);

@@ -18,7 +18,7 @@ export default function CompanyCard({ company, onUpdateStatus }: CompanyCardProp
   const handleReject = () => {
     if (
       confirm(
-        `¿Estás seguro de eliminar la cuenta de ${company.company_name}?\n\nEsta acción eliminará permanentemente:\n- Datos de la empresa\n- Cuenta de usuario\n- Proyectos asignados\n\nEsta acción NO se puede deshacer.`
+        `¿Estás seguro de rechazar la solicitud de ${company.company_name}?\n\nLa empresa será marcada como rechazada y no podrá acceder a la plataforma.\n\nPodrás revisar este registro en el filtro de "Rechazadas".`
       )
     ) {
       onUpdateStatus(company.id, "rejected");
@@ -70,7 +70,7 @@ export default function CompanyCard({ company, onUpdateStatus }: CompanyCardProp
                 Aprobar
               </Button>
               <Button variant="destructive" size="sm" onClick={handleReject}>
-                Eliminar Cuenta
+                Rechazar
               </Button>
             </div>
           )}
