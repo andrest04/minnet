@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import type { APIResponse } from '@/lib/types';
 
 // Map new user types to old ones for backward compatibility in responses
 const USER_TYPE_LEGACY_MAP: Record<string, string> = {
@@ -140,6 +141,223 @@ export async function GET() {
     console.error('Error en GET /api/profile:', error);
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+
+    // Authenticate user - CRITICAL SECURITY CHECK
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'No autenticado' } as APIResponse,
+        { status: 401 }
+      );
+    }
+
+    const userId = user.id;
+    const updateData = await request.json();
+
+    // Get user's profile to determine user_type
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', userId)
+      .single();
+
+    if (profileError || !profile) {
+      return NextResponse.json(
+        { success: false, error: 'Perfil no encontrado' } as APIResponse,
+        { status: 404 }
+      );
+    }
+
+    // Define readonly fields that should never be updated by users
+    const globalReadonlyFields = ['id', 'created_at', 'updated_at', 'user_type', 'consent_date', 'consent_version', 'email', 'phone'];
+
+    // Check for attempts to update readonly fields
+    for (const field of globalReadonlyFields) {
+      if (field in updateData) {
+        return NextResponse.json(
+          { success: false, error: `El campo '${field}' no se puede modificar` } as APIResponse,
+          { status: 400 }
+        );
+      }
+    }
+
+    // Update based on user type
+    if (profile.user_type === 'resident') {
+      // Additional readonly fields for residents
+      const residentReadonlyFields = ['region_id', 'project_id'];
+      for (const field of residentReadonlyFields) {
+        if (field in updateData) {
+          return NextResponse.json(
+            { success: false, error: `El campo '${field}' no se puede modificar` } as APIResponse,
+            { status: 400 }
+          );
+        }
+      }
+
+      // Allowed fields for residents
+      const allowedFields = [
+        'age_range',
+        'education_level',
+        'gender',
+        'profession',
+        'employment_status',
+        'trust_level',
+        'junta_link',
+        'junta_relationship',
+        'topics_interest',
+        'knowledge_level',
+        'participation_willingness',
+      ];
+
+      const fieldsToUpdate = Object.keys(updateData).filter(key => allowedFields.includes(key));
+
+      if (fieldsToUpdate.length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'No hay campos válidos para actualizar' } as APIResponse,
+          { status: 400 }
+        );
+      }
+
+      const updatePayload: Record<string, unknown> = {};
+      fieldsToUpdate.forEach(field => {
+        updatePayload[field] = updateData[field];
+      });
+
+      const { data, error } = await supabase
+        .from('residents')
+        .update(updatePayload)
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error al actualizar perfil de residente:', error);
+        return NextResponse.json(
+          { success: false, error: 'Error al actualizar perfil' } as APIResponse,
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        profile: data,
+        message: 'Perfil actualizado correctamente',
+      } as APIResponse);
+
+    } else if (profile.user_type === 'company') {
+      // Additional readonly fields for companies
+      const companyReadonlyFields = ['validation_status', 'assigned_projects'];
+      for (const field of companyReadonlyFields) {
+        if (field in updateData) {
+          return NextResponse.json(
+            { success: false, error: `El campo '${field}' no se puede modificar` } as APIResponse,
+            { status: 400 }
+          );
+        }
+      }
+
+      // Allowed fields for companies
+      const allowedFields = [
+        'company_name',
+        'position',
+        'responsible_area',
+        'use_objective',
+        'consultation_frequency',
+      ];
+
+      const fieldsToUpdate = Object.keys(updateData).filter(key => allowedFields.includes(key));
+
+      if (fieldsToUpdate.length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'No hay campos válidos para actualizar' } as APIResponse,
+          { status: 400 }
+        );
+      }
+
+      const updatePayload: Record<string, unknown> = {};
+      fieldsToUpdate.forEach(field => {
+        updatePayload[field] = updateData[field];
+      });
+
+      const { data, error } = await supabase
+        .from('companies')
+        .update(updatePayload)
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error al actualizar perfil de empresa:', error);
+        return NextResponse.json(
+          { success: false, error: 'Error al actualizar perfil' } as APIResponse,
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        profile: data,
+        message: 'Perfil actualizado correctamente',
+      } as APIResponse);
+
+    } else if (profile.user_type === 'administrator') {
+      // Allowed fields for administrators
+      const allowedFields = ['full_name'];
+
+      const fieldsToUpdate = Object.keys(updateData).filter(key => allowedFields.includes(key));
+
+      if (fieldsToUpdate.length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'No hay campos válidos para actualizar' } as APIResponse,
+          { status: 400 }
+        );
+      }
+
+      const updatePayload: Record<string, unknown> = {};
+      fieldsToUpdate.forEach(field => {
+        updatePayload[field] = updateData[field];
+      });
+
+      const { data, error } = await supabase
+        .from('administrators')
+        .update(updatePayload)
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error al actualizar perfil de administrador:', error);
+        return NextResponse.json(
+          { success: false, error: 'Error al actualizar perfil' } as APIResponse,
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        profile: data,
+        message: 'Perfil actualizado correctamente',
+      } as APIResponse);
+    }
+
+    return NextResponse.json(
+      { success: false, error: 'Tipo de usuario no válido' } as APIResponse,
+      { status: 400 }
+    );
+
+  } catch (error) {
+    console.error('Error en PATCH /api/profile:', error);
+    return NextResponse.json(
+      { success: false, error: 'Error interno del servidor' } as APIResponse,
       { status: 500 }
     );
   }
