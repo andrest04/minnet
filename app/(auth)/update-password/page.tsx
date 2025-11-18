@@ -88,14 +88,19 @@ export default function UpdatePasswordPage() {
         return;
       }
 
-      toast.success("Contraseña actualizada correctamente. Ya puedes iniciar sesión.");
+      toast.success("Contraseña actualizada correctamente. Redirigiendo...");
 
+      // Esperar un momento para que Supabase sincronice la contraseña
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Cerrar sesión de recuperación
       const supabase = createClient();
       await supabase.auth.signOut();
 
+      // Redirigir al login
       setTimeout(() => {
         router.push("/login");
-      }, 1500);
+      }, 1000);
     } catch (err) {
       console.error("Error al actualizar contraseña:", err);
       toast.error("Error de conexión. Por favor, intenta nuevamente.");

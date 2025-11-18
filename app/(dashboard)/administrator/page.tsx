@@ -50,7 +50,7 @@ export default function AdminPage() {
       }
 
       if (companiesRes.status === 403 || statsRes.status === 403) {
-        router.push('/poblador'); // Not admin, redirect to default
+        router.push('/resident'); // Not admin, redirect to default
         return;
       }
 

@@ -254,7 +254,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("Error en GET /api/empresa/metrics:", error);
+    console.error("Error en GET /api/company/metrics:", error);
     return NextResponse.json(
       { success: false, error: "Error interno del servidor" },
       { status: 500 }

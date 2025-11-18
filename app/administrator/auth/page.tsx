@@ -78,7 +78,7 @@ export default function AdminAuthPage() {
       }
 
       toast.success("Sesión iniciada correctamente");
-      router.push("/admin");
+      router.push("/administrator");
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
       toast.error("Error de conexión");
@@ -156,7 +156,7 @@ export default function AdminAuthPage() {
       if (loginResponse.ok) {
         toast.success("Iniciando sesión...");
         setTimeout(() => {
-          router.push("/admin");
+          router.push("/administrator");
         }, 1000);
       } else {
         toast.info("Registro exitoso. Por favor, inicia sesión.");

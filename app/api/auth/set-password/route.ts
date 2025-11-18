@@ -27,26 +27,40 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
 
+    // Verificar que hay una sesión activa (puede ser normal o de recuperación)
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
-    if (userError || !user) {
+    if (sessionError || !session) {
       return NextResponse.json(
         { success: false, error: "Usuario no autenticado" },
         { status: 401 }
       );
     }
 
-    const { error: updateError } = await supabase.auth.updateUser({
-      password,
-    });
+    // Actualizar la contraseña usando updateUser
+    const { data: updateData, error: updateError } =
+      await supabase.auth.updateUser({
+        password,
+      });
 
     if (updateError) {
       console.error("Error al actualizar contraseña:", updateError);
       return NextResponse.json(
-        { success: false, error: "Error al actualizar contraseña" },
+        {
+          success: false,
+          error:
+            updateError.message || "Error al actualizar contraseña",
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!updateData.user) {
+      return NextResponse.json(
+        { success: false, error: "No se pudo actualizar la contraseña" },
         { status: 500 }
       );
     }

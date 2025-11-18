@@ -103,14 +103,29 @@ export default function EmpresaPage() {
         setProfile(profileData.profile);
 
         if (profileData.profile.validation_status === "approved") {
-          const metricsResponse = await fetch("/api/empresa/metrics");
-          const metricsData = await metricsResponse.json();
+          try {
+            const metricsResponse = await fetch("/api/company/metrics");
 
-          if (metricsData.success) {
-            setMetrics(metricsData.data);
-          } else {
-            console.error("Error al cargar métricas:", metricsData.error);
-            toast.error("No se pudieron cargar los indicadores");
+            if (metricsResponse.ok) {
+              const metricsData = await metricsResponse.json();
+
+              if (metricsData.success) {
+                setMetrics(metricsData.data);
+              } else {
+                console.error("Error al cargar métricas:", metricsData.error);
+                toast.error("No se pudieron cargar los indicadores");
+              }
+            } else if (metricsResponse.status === 404) {
+              console.log("Empresa sin proyectos asignados");
+              // No mostrar error, la UI maneja el caso sin métricas
+              setMetrics(null);
+            } else {
+              console.error("Error HTTP al cargar métricas:", metricsResponse.status);
+              toast.error("Error al cargar indicadores");
+            }
+          } catch (error) {
+            console.error("Error al cargar métricas:", error);
+            toast.error("Error de conexión al cargar indicadores");
           }
         }
       }

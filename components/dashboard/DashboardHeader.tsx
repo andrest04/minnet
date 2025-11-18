@@ -38,19 +38,43 @@ export function DashboardHeader() {
 
         if (!user) return
 
-        // Obtener perfil del usuario
+        // Obtener perfil base del usuario
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, user_type')
+          .select('user_type, email, phone')
           .eq('id', user.id)
-          .single<{ full_name: string | null; user_type: string }>()
+          .single<{ user_type: string; email: string | null; phone: string | null }>()
 
-        if (profile) {
-          setUserInfo({
-            name: profile.full_name || 'Usuario',
-            type: profile.user_type as 'resident' | 'company' | 'administrator',
-          })
+        if (!profile) return
+
+        let name = 'Usuario'
+
+        // Obtener nombre según tipo de usuario
+        if (profile.user_type === 'company') {
+          const { data: company } = await supabase
+            .from('companies')
+            .select('company_name')
+            .eq('id', user.id)
+            .single()
+
+          if (company) name = company.company_name
+        } else if (profile.user_type === 'administrator') {
+          const { data: admin } = await supabase
+            .from('administrators')
+            .select('full_name')
+            .eq('id', user.id)
+            .single()
+
+          if (admin) name = admin.full_name
+        } else if (profile.user_type === 'resident') {
+          // Residents no tienen nombre, usar email o teléfono
+          name = profile.email || profile.phone || 'Poblador'
         }
+
+        setUserInfo({
+          name,
+          type: profile.user_type as 'resident' | 'company' | 'administrator',
+        })
       } catch (error) {
         console.error('Error al obtener información del usuario:', error)
       }
